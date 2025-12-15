@@ -399,7 +399,7 @@ async function loadBratContent() {
 }
 
 // ==========================================================
-// SAVE TO SUPABASE (FIXED VERSION)
+// SAVE TO SUPABASE (FIXED VERSION - HANDLES UNIQUE CONSTRAINT)
 // ==========================================================
 async function saveBratContent() {
   console.log('Attempting to save BRAT content...');
@@ -418,47 +418,68 @@ async function saveBratContent() {
   }
   
   try {
-    const { data: updateResult, error: updateError } = await supabase
+    // Cek dulu apakah data brat sudah ada
+    const { data: existingData, error: checkError } = await supabase
       .from('content')
-      .update({ 
-        brat_content: html,
-        content: html,
-        updated_at: new Date().toISOString() 
-      })
-      .eq('page', 'brat');
+      .select('id')
+      .eq('page', 'brat')
+      .maybeSingle(); // Use maybeSingle instead of single
     
-    console.log('Update result:', { updateResult, updateError });
+    console.log('Existing data check:', { existingData, checkError });
     
-    if (updateError || !updateResult) {
-      console.log('Update failed or no rows affected, trying insert...');
+    if (checkError && checkError.code !== 'PGRST116') {
+      throw checkError;
+    }
+    
+    const now = new Date().toISOString();
+    
+    if (existingData) {
+      // UPDATE existing record
+      console.log('Updating existing BRAT record...');
+      const { data: updateResult, error: updateError } = await supabase
+        .from('content')
+        .update({ 
+          brat_content: html,
+          content: html,
+          updated_at: now
+        })
+        .eq('page', 'brat');
       
+      if (updateError) throw updateError;
+      
+      alert("✅ BRAT content updated successfully!");
+      console.log('Update successful:', updateResult);
+    } else {
+      // INSERT new record
+      console.log('Inserting new BRAT record...');
       const { data: insertResult, error: insertError } = await supabase
         .from('content')
         .insert([{ 
           page: 'brat', 
           brat_content: html,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          content: html,
+          created_at: now,
+          updated_at: now
         }])
         .select();
       
-      console.log('Insert result:', { insertResult, insertError });
-      
       if (insertError) throw insertError;
       
-      alert("✅ BRAT content saved to Supabase! (New record created)");
-    } else {
-      alert("✅ BRAT content saved to Supabase! (Existing record updated)");
+      alert("✅ BRAT content saved successfully! (New record created)");
+      console.log('Insert successful:', insertResult);
     }
-    
-    console.log('Save successful!');
     
   } catch (error) {
     console.error('Save error details:', error);
-    alert("❌ Save failed: " + (error.message || 'Unknown error'));
+    
+    // User-friendly error messages
+    if (error.code === '23505') {
+      alert("❌ Error: BRAT page already exists. Try refreshing and saving again.");
+    } else {
+      alert("❌ Save failed: " + (error.message || 'Unknown error'));
+    }
   }
 }
-
 // ==========================================================
 // AUTH + SHOW TOOLBAR (FIXED)
 // ==========================================================
