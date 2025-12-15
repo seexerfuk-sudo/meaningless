@@ -19,13 +19,13 @@
   --header-h: 170px;
   --footer-h: 40px;
   --toolbar-gap: 10px;
-        /* Glassmorphism Effect */
-            --glass-bg-primary: rgba(255, 255, 255, 0.051); 
-            --glass-bg: rgba(255, 255, 255, 0.033); 
-            --glass-border: rgba(255, 255, 255, 0.115);
-            --glass-shadow-primary: rgba(0, 0, 0, 0.3); 
-            --text-color-light: #f1f1f1;
-        }
+  /* Glassmorphism Effect */
+  --glass-bg-primary: rgba(255, 255, 255, 0.051); 
+  --glass-bg: rgba(255, 255, 255, 0.033); 
+  --glass-border: rgba(255, 255, 255, 0.115);
+  --glass-shadow-primary: rgba(0, 0, 0, 0.3); 
+  --text-color-light: #f1f1f1;
+}
 
 /* Body */
 body.page-brat {
@@ -62,43 +62,56 @@ body.page-brat::before {
 }
 
 /* Full width content (shifted down to leave space for toolbar) */
-        .content-wrap {
-            position: absolute;
-            top: var(--header-h);
-            left: 220px; 
-            right: 220px; 
-            bottom: 40px;
-            transition: left .28s ease;
-            overflow: hidden;
-            padding: 18px;
-        }
+.content-wrap {
+  position: absolute;
+  top: var(--header-h);
+  left: 220px; 
+  right: 220px; 
+  bottom: 40px;
+  transition: left .28s ease;
+  overflow: hidden;
+  padding: 18px;
+}
+
 /* Editor container */
 .brat-editor-card {
-            width: 100%;
-            height: 100%;
-            background: var(--glass-bg-primary);
-            backdrop-filter: blur(20px) saturate(150%);
-            -webkit-backdrop-filter: blur(20px) saturate(150%);
-            border-radius: 18px;
-            border: 1px solid var(--glass-border);
-            padding: 26px;
-            overflow-y: auto;
-            box-shadow: 0 8px 32px 0 var(--glass-shadow-primary), inset 0 0 0 1px rgba(255,255,255,0.1);
-            color: #dcdcdc;
-            line-height: 1.6;
-        
-
-
+  width: 100%;
+  height: 100%;
+  background: var(--glass-bg-primary);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border-radius: 18px;
+  border: 1px solid var(--glass-border);
+  padding: 26px;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px 0 var(--glass-shadow-primary), inset 0 0 0 1px rgba(255,255,255,0.1);
+  color: #dcdcdc;
+  line-height: 1.6;
+  
   /* Rich edit compatibility */
-  -webkit-user-modify: read-write; /* enable editing on iOS */
+  -webkit-user-modify: read-only; /* Default: read-only untuk viewer */
   -webkit-user-select: text;
   user-select: text;
   outline: none;
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Style untuk mode edit (admin) */
+.brat-editor-card.editable {
+  -webkit-user-modify: read-write;
+  cursor: text;
+}
+
+/* Style untuk mode view (non-admin) */
+.brat-editor-card.view-only {
+  -webkit-user-modify: read-only;
+  cursor: default;
+}
+
 /* Make article focusable for editor.focus() */
-.brat-editor-card:focus { box-shadow: 0 0 0 2px rgba(220, 234, 241, 0.429) inset; }
+.brat-editor-card:focus { 
+  box-shadow: 0 0 0 2px rgba(220, 234, 241, 0.429) inset; 
+}
 
 /* =====================================================
    FIXED FLOATING TOOLBAR (SMOOTH)
@@ -109,12 +122,11 @@ body.page-brat::before {
   left: 50%;
   transform: translateX(-50%);
   width: fit-content;
-
   background: rgba(20,20,20,0.92);
   border: 1px solid rgba(255,255,255,0.10);
   padding: 10px 14px;
   border-radius: 12px;
-  display: flex;
+  display: none; /* Hidden by default, only show when admin */
   gap: var(--toolbar-gap);
   align-items: center;
   z-index: 9999;
@@ -148,38 +160,46 @@ body.page-brat::before {
 
 /* Desktop layout remains centered */
 @media (min-width: 721px) {
-  .editor-toolbar-fixed { width: fit-content; left: 50%; transform: translateX(-50%); border-radius: 12px; }
+  .editor-toolbar-fixed { 
+    width: fit-content; 
+    left: 50%; 
+    transform: translateX(-50%); 
+    border-radius: 12px; 
+  }
 }
 
 /* =====================================================
    MOBILE: toolbar becomes horizontal scrollable bar
 ===================================================== */
 @media (max-width:720px) {
-        .content-wrap {
-            left: 30px; 
-            right: 30px;
-            top: calc(var(--header-h) + 60px);
-            bottom: 65px;
-            padding: 10px; /* Padding sedikit disesuaikan untuk mobile */
-        }
+  .content-wrap {
+    left: 30px; 
+    right: 30px;
+    top: calc(var(--header-h) + 60px);
+    bottom: 65px;
+    padding: 10px; /* Padding sedikit disesuaikan untuk mobile */
+  }
 
   .editor-toolbar-fixed {
-            position: fixed;
-            top: calc(var(--header-h) + 15px); 
-            left: 0;
-            right: 0;
-            transform: none;
-            width: 100%;
-            padding: 8px 12px;
-            border-radius: 0;
-            background: rgba(18,18,18,0.92);
-            overflow-x: auto;
-            white-space: nowrap;
-            -webkit-overflow-scrolling: touch;
+    position: fixed;
+    top: calc(var(--header-h) + 15px); 
+    left: 0;
+    right: 0;
+    transform: none;
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 0;
+    background: rgba(18,18,18,0.92);
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
   }
 
   .editor-toolbar-fixed::-webkit-scrollbar { height: 6px; }
-  .editor-toolbar-fixed::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 6px; }
+  .editor-toolbar-fixed::-webkit-scrollbar-thumb { 
+    background: rgba(255,255,255,0.12); 
+    border-radius: 6px; 
+  }
 
   .editor-toolbar-fixed select,
   .editor-toolbar-fixed button,
@@ -193,11 +213,30 @@ body.page-brat::before {
 .editor-toolbar-fixed select { min-width: 88px; }
 .editor-toolbar-fixed input[type="color"] { padding: 6px; width: 40px; }
 
+/* Style untuk cursor di mode berbeda */
+.brat-editor-card.view-only * {
+  cursor: default !important;
+}
 
-/* ADMIN TOGGLE: dihapus karena sudah ada di style.css */
+.brat-editor-card.editable * {
+  cursor: text !important;
+}
+
+/* Pesan untuk viewer */
+.viewer-notice {
+  display: none;
+  text-align: center;
+  padding: 20px;
+  color: #888;
+  font-style: italic;
+  font-size: 14px;
+}
+
+body:not(.logged-in) .viewer-notice {
+  display: block;
+}
 </style>
 </head>
-
 
 <body class="page-brat">
 
@@ -210,8 +249,7 @@ body.page-brat::before {
   </nav>
 </header>
 
-
-<div class="editor-toolbar-fixed" id="toolbar-brat" style="display:none;">
+<div class="editor-toolbar-fixed" id="toolbar-brat">
   <select id="fontSelect-brat" aria-label="Font">
     <option value="monospace">Monospace</option>
     <option value="serif">Serif</option>
@@ -243,9 +281,11 @@ body.page-brat::before {
   <button id="saveBrat" type="button">SAVE</button>
 </div>
 
-
 <main class="content-wrap">
-  <article id="bratEditor" class="brat-editor-card editable" contenteditable="false" tabindex="0"></article>
+  <article id="bratEditor" class="brat-editor-card view-only" tabindex="0"></article>
+  <div class="viewer-notice">
+    Hanya admin yang dapat mengedit konten ini. Untuk mengedit, silakan login terlebih dahulu.
+  </div>
   <input type="file" id="imageInputBrat" accept="image/*" style="display:none" />
 </main>
 
@@ -292,7 +332,6 @@ async function testSupabase() {
   try {
     console.log('Testing Supabase connection...');
     
-    // Test 1: Check if table exists
     const { data: tables, error: tablesError } = await supabase
       .from('content')
       .select('*')
@@ -300,24 +339,10 @@ async function testSupabase() {
     
     if (tablesError) {
       console.error('Table error:', tablesError);
-      alert('Database error: ' + tablesError.message);
       return false;
     }
     
     console.log('Table exists, rows:', tables?.length || 0);
-    
-    // Test 2: Check BRAT data
-    const { data: bratData, error: bratError } = await supabase
-      .from('content')
-      .select('*')
-      .eq('page', 'brat')
-      .single();
-    
-    if (bratError && bratError.code !== 'PGRST116') {
-      console.error('BRAT data error:', bratError);
-    } else {
-      console.log('BRAT data:', bratData);
-    }
     
     return true;
   } catch (error) {
@@ -342,37 +367,34 @@ async function loadBratContent() {
     console.log('Load response:', { data, error });
     
     if (error) {
-      // No rows found - create new
       if (error.code === 'PGRST116') {
         console.log('No BRAT row found, will create when first saved');
-        editor.innerHTML = '';
+        editor.innerHTML = '<p>Mulai menulis di sini...</p>';
         return;
       }
       throw error;
     }
     
-    // Try different column names
     let content = '';
     if (data.brat_content) {
       content = data.brat_content;
-      console.log('Found in brat_content column');
     } else if (data.content) {
       content = data.content;
-      console.log('Found in content column');
     } else if (data.data) {
       content = data.data;
-      console.log('Found in data column');
     }
     
     console.log('Content to load:', content.substring(0, 50) + '...');
     
-    if (content && document.activeElement !== editor) {
+    if (content) {
       editor.innerHTML = content;
+    } else {
+      editor.innerHTML = '<p>Mulai menulis di sini...</p>';
     }
     
   } catch (error) {
     console.error('Error loading BRAT content:', error);
-    // Don't alert on load error - might be first time
+    editor.innerHTML = '<p>Error loading content. Please refresh.</p>';
   }
 }
 
@@ -396,20 +418,18 @@ async function saveBratContent() {
   }
   
   try {
-    // First, try to update existing
     const { data: updateResult, error: updateError } = await supabase
       .from('content')
       .update({ 
         brat_content: html,
-        content: html, // fallback column
+        content: html,
         updated_at: new Date().toISOString() 
       })
       .eq('page', 'brat');
     
     console.log('Update result:', { updateResult, updateError });
     
-    // If update didn't affect any rows, try insert
-    if (updateError || !updateResult || updateResult.length === 0) {
+    if (updateError || !updateResult) {
       console.log('Update failed or no rows affected, trying insert...');
       
       const { data: insertResult, error: insertError } = await supabase
@@ -444,7 +464,6 @@ async function saveBratContent() {
 // ==========================================================
 async function setupAuth() {
   try {
-    // Check current auth state
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     
     if (userError) {
@@ -459,13 +478,23 @@ async function setupAuth() {
     adminToggle.textContent = isLoggedIn ? "do it" : "outsider";
     
     if (isLoggedIn) {
+      // ADMIN MODE: Show toolbar and enable editing
       toolbar.style.display = "flex";
       editor.contentEditable = "true";
-      console.log('Editor enabled for editing');
+      editor.classList.remove("view-only");
+      editor.classList.add("editable");
+      console.log('Editor enabled for editing (ADMIN MODE)');
     } else {
+      // VIEWER MODE: Hide toolbar and disable editing
       toolbar.style.display = "none";
       editor.contentEditable = "false";
-      console.log('Editor disabled (read-only)');
+      editor.classList.remove("editable");
+      editor.classList.add("view-only");
+      
+      // Disable all editing interactions for viewer
+      editor.style.pointerEvents = "none";
+      editor.style.cursor = "default";
+      console.log('Editor disabled (VIEWER MODE)');
     }
     
   } catch (error) {
@@ -483,16 +512,20 @@ supabase.auth.onAuthStateChange((event, session) => {
 // EVENT LISTENERS
 // ==========================================================
 
-// Save button
+// Save button - only works when logged in
 if (saveBtn) {
   saveBtn.addEventListener("click", saveBratContent);
   console.log('Save button listener added');
 }
 
-// Toolbar commands
+// Toolbar commands - only work when logged in
 if (toolbar) {
   toolbar.addEventListener("click", (e) => {
-    if (!editor.isContentEditable) return;
+    // Check if user is logged in
+    if (!editor.isContentEditable) {
+      alert("Please login to edit content");
+      return;
+    }
     
     const btn = e.target.closest("button");
     if (!btn) return;
@@ -513,7 +546,7 @@ if (toolbar) {
   });
 }
 
-// Font controls
+// Font controls - only work when logged in
 const fontSelect = document.getElementById("fontSelect-brat");
 const sizeSelect = document.getElementById("sizeSelect-brat");
 const colorInput = document.getElementById("color-brat");
@@ -547,10 +580,14 @@ if (colorInput) {
   });
 }
 
-// Image upload
+// Image upload - only work when logged in
 if (imageInput) {
   imageInput.addEventListener("change", async (e) => {
-    if (!editor.isContentEditable) return;
+    if (!editor.isContentEditable) {
+      alert("Please login to upload images");
+      e.target.value = null;
+      return;
+    }
     
     const file = e.target.files[0];
     if (!file) return;
@@ -558,7 +595,6 @@ if (imageInput) {
     console.log('Image selected:', file.name, file.size);
     
     try {
-      // Upload to Supabase Storage
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
       
@@ -569,18 +605,15 @@ if (imageInput) {
       
       if (error) throw error;
       
-      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('images')
         .getPublicUrl(fileName);
       
       console.log('Image uploaded, URL:', publicUrl);
       
-      // Insert image into editor
       editor.focus();
       document.execCommand("insertImage", false, publicUrl);
       
-      // Auto-save
       await saveBratContent();
       
     } catch (error) {
@@ -616,13 +649,50 @@ if (adminToggle) {
   });
 }
 
+// Prevent editing for viewers by disabling all edit events
+function preventViewerEditing() {
+  editor.addEventListener('keydown', (e) => {
+    if (!editor.isContentEditable) {
+      e.preventDefault();
+      return false;
+    }
+  });
+  
+  editor.addEventListener('paste', (e) => {
+    if (!editor.isContentEditable) {
+      e.preventDefault();
+      return false;
+    }
+  });
+  
+  editor.addEventListener('cut', (e) => {
+    if (!editor.isContentEditable) {
+      e.preventDefault();
+      return false;
+    }
+  });
+  
+  editor.addEventListener('dragstart', (e) => {
+    if (!editor.isContentEditable) {
+      e.preventDefault();
+      return false;
+    }
+  });
+  
+  editor.addEventListener('drop', (e) => {
+    if (!editor.isContentEditable) {
+      e.preventDefault();
+      return false;
+    }
+  });
+}
+
 // ==========================================================
 // INITIALIZATION
 // ==========================================================
 async function initialize() {
   console.log('Initializing BRAT page...');
   
-  // Test connection
   const connected = await testSupabase();
   console.log('Supabase connected:', connected);
   
@@ -630,11 +700,9 @@ async function initialize() {
     alert('⚠️ Cannot connect to database. Check console for details.');
   }
   
-  // Setup auth
   await setupAuth();
-  
-  // Load content
   await loadBratContent();
+  preventViewerEditing(); // Add protection against viewer editing
   
   console.log('BRAT page initialized successfully');
 }
