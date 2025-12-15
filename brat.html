@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>BRAT — EW</title>
+<link rel="stylesheet" href="style.css" />
+
+<style>
+/* =====================================================
+   BRAT — CLEAN DARK LAYOUT (FULL WIDTH SYNCHRONIZED)
+   FIXED SMOOTH TOOLBAR + MOBILE HORIZONTAL SCROLL
+   & RICH-EDITOR COMPAT (desktop + mobile)
+===================================================== */
+
+/* Variables */
+:root {
+  --gutter: 40px;
+  --header-h: 170px;
+  --footer-h: 40px;
+  --toolbar-gap: 10px;
+        /* Glassmorphism Effect */
+            --glass-bg-primary: rgba(255, 255, 255, 0.051); 
+            --glass-bg: rgba(255, 255, 255, 0.033); 
+            --glass-border: rgba(255, 255, 255, 0.115);
+            --glass-shadow-primary: rgba(0, 0, 0, 0.3); 
+            --text-color-light: #f1f1f1;
+        }
+
+/* Body */
+body.page-brat {
+  position: relative; /* reference untuk ::before */
+  overflow-x: hidden;
+  min-height: 100vh;
+  color: #d6d6d6;
+  font-family: "Doto", sans-serif;
+  background: none; /* hapus background global */
+}
+
+body.page-brat::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-image: url('asset/bratdesktop.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: -1;
+}
+
+/* Background mobile */
+@media (max-width: 720px) {
+  body.page-brat::before {
+    background-image: url('asset/bratmobile.png');
+    background-size: cover;
+    background-position: center top;
+    z-index: -1;
+  }
+}
+
+/* Full width content (shifted down to leave space for toolbar) */
+        .content-wrap {
+            position: absolute;
+            top: var(--header-h);
+            left: 220px; 
+            right: 220px; 
+            bottom: 40px;
+            transition: left .28s ease;
+            overflow: hidden;
+            padding: 18px;
+        }
+/* Editor container */
+.brat-editor-card {
+            width: 100%;
+            height: 100%;
+            background: var(--glass-bg-primary);
+            backdrop-filter: blur(20px) saturate(150%);
+            -webkit-backdrop-filter: blur(20px) saturate(150%);
+            border-radius: 18px;
+            border: 1px solid var(--glass-border);
+            padding: 26px;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px 0 var(--glass-shadow-primary), inset 0 0 0 1px rgba(255,255,255,0.1);
+            color: #dcdcdc;
+            line-height: 1.6;
+        
+
+
+  /* Rich edit compatibility */
+  -webkit-user-modify: read-write; /* enable editing on iOS */
+  -webkit-user-select: text;
+  user-select: text;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Make article focusable for editor.focus() */
+.brat-editor-card:focus { box-shadow: 0 0 0 2px rgba(220, 234, 241, 0.429) inset; }
+
+/* =====================================================
+   FIXED FLOATING TOOLBAR (SMOOTH)
+===================================================== */
+.editor-toolbar-fixed {
+  position: fixed;
+  top: calc(var(--header-h) + -30px); /* diperbaiki: 10px below header */
+  left: 50%;
+  transform: translateX(-50%);
+  width: fit-content;
+
+  background: rgba(20,20,20,0.92);
+  border: 1px solid rgba(255,255,255,0.10);
+  padding: 10px 14px;
+  border-radius: 12px;
+  display: flex;
+  gap: var(--toolbar-gap);
+  align-items: center;
+  z-index: 9999;
+  backdrop-filter: blur(6px);
+  transition: box-shadow .18s ease, transform .18s ease, opacity .18s ease;
+}
+
+/* Shadow when scrolling */
+.editor-toolbar-fixed.scrolled {
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  transform: translate(-50%, 4px);
+}
+
+/* Buttons / selects */
+.editor-toolbar-fixed select,
+.editor-toolbar-fixed button,
+.editor-toolbar-fixed input[type="color"] {
+  background: rgba(255,255,255,0.04);
+  color: #e8e8e8;
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.editor-toolbar-fixed button:hover {
+  background: rgba(255,255,255,0.10);
+}
+
+/* Desktop layout remains centered */
+@media (min-width: 721px) {
+  .editor-toolbar-fixed { width: fit-content; left: 50%; transform: translateX(-50%); border-radius: 12px; }
+}
+
+/* =====================================================
+   MOBILE: toolbar becomes horizontal scrollable bar
+===================================================== */
+@media (max-width:720px) {
+        .content-wrap {
+            left: 30px; 
+            right: 30px;
+            top: calc(var(--header-h) + 60px);
+            bottom: 65px;
+            padding: 10px; /* Padding sedikit disesuaikan untuk mobile */
+        }
+
+  .editor-toolbar-fixed {
+            position: fixed;
+            top: calc(var(--header-h) + 15px); 
+            left: 0;
+            right: 0;
+            transform: none;
+            width: 100%;
+            padding: 8px 12px;
+            border-radius: 0;
+            background: rgba(18,18,18,0.92);
+            overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+  }
+
+  .editor-toolbar-fixed::-webkit-scrollbar { height: 6px; }
+  .editor-toolbar-fixed::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 6px; }
+
+  .editor-toolbar-fixed select,
+  .editor-toolbar-fixed button,
+  .editor-toolbar-fixed input[type="color"] {
+    display: inline-block;
+    margin-right: 8px;
+  }
+}
+
+/* Small adjustments */
+.editor-toolbar-fixed select { min-width: 88px; }
+.editor-toolbar-fixed input[type="color"] { padding: 6px; width: 40px; }
+
+
+/* ADMIN TOGGLE: dihapus karena sudah ada di style.css */
+</style>
+</head>
+
+
+<body class="page-brat">
+
+<header class="site-header small">
+  <h1 class="brat">BRAT</h1>
+  <nav class="main-nav">
+    <a href="index.html" class="menu-btn">HOME</a> 
+    <a href="art.html" class="menu-btn">ART</a>
+    <a href="yapper.html" class="menu-btn">YAPS</a>
+  </nav>
+</header>
+
+
+<div class="editor-toolbar-fixed" id="toolbar-brat" style="display:none;">
+  <select id="fontSelect-brat" aria-label="Font">
+    <option value="monospace">Monospace</option>
+    <option value="serif">Serif</option>
+    <option value="sans-serif">Sans</option>
+    <option value="Doto">Doto</option>
+    <option value="Quantico">Quantico</option>
+  </select>
+
+  <select id="sizeSelect-brat" aria-label="Size">
+    <option value="14">14px</option>
+    <option value="16" selected>16px</option>
+    <option value="20">20px</option>
+    <option value="24">24px</option>
+  </select>
+  
+  <button type="button" data-cmd="bold" aria-label="Bold"><b>B</b></button>
+  <button type="button" data-cmd="italic" aria-label="Italic"><i>I</i></button>
+  <button type="button" data-cmd="underline" aria-label="Underline"><u>U</u></button>
+
+  <input type="color" id="color-brat" value="#4FC3F7" aria-label="Color"/>
+
+  <button type="button" data-cmd="justifyLeft" aria-label="Left">L</button>
+  <button type="button" data-cmd="justifyCenter" aria-label="Center">C</button>
+  <button type="button" data-cmd="justifyRight" aria-label="Right">R</button>
+  <button type="button" data-cmd="outdent" aria-label="Outdent">&lt;</button>
+  <button type="button" data-cmd="indent" aria-label="Indent">&gt;</button>
+
+  <button id="addImageBrat" type="button">IMG</button>
+  <button id="saveBrat" type="button">SAVE</button>
+</div>
+
+
+<main class="content-wrap">
+  <article id="bratEditor" class="brat-editor-card editable" contenteditable="false" tabindex="0"></article>
+  <input type="file" id="imageInputBrat" accept="image/*" style="display:none" />
+</main>
+
+<button id="adminToggle" class="admin-toggle admin-toggle-center" aria-live="polite">outsider</button>
+
+<script src="app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ==========================================================
+// SUPABASE INITIALIZATION
+// ==========================================================
+const supabaseUrl = 'https://exnzopxpseoztfhrtrxj.supabase.co'
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4bnpvcHhwc2VvenRmaHJ0cnhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0MzgyNzIsImV4cCI6MjA4MTAxNDI3Mn0.x6oP9AfSFd0LuaQxCHmBLzcD23CGO8BA0iMkubtkG24'
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey)
+
+// ==========================================================
+// DOM ELEMENTS
+// ==========================================================
+const toolbar = document.getElementById("toolbar-brat");
+const editor = document.getElementById("bratEditor");
+const saveBtn = document.getElementById("saveBrat");
+const addImageBtn = document.getElementById("addImageBrat");
+const imageInput = document.getElementById("imageInputBrat");
+const adminToggle = document.getElementById("adminToggle");
+
+// ==========================================================
+// LOAD FROM SUPABASE (single content)
+// ==========================================================
+async function loadBratContent() {
+  try {
+    const { data, error } = await supabase
+      .from('content')
+      .select('brat_content')
+      .eq('page', 'brat')
+      .single();
+    
+    if (error) throw error;
+    
+    if (data && data.brat_content) {
+      // Only update editor if user isn't actively typing to avoid clobbering
+      if (document.activeElement !== editor) {
+        editor.innerHTML = data.brat_content;
+      }
+    }
+  } catch (error) {
+    console.error('Error loading BRAT content:', error);
+  }
+}
+
+// Initial load
+loadBratContent();
+
+// ==========================================================
+// AUTH + SHOW TOOLBAR
+// ==========================================================
+supabase.auth.onAuthStateChange(async (event, session) => {
+  const isLoggedIn = !!session;
+  document.body.classList.toggle("logged-in", isLoggedIn);
+  adminToggle.textContent = isLoggedIn ? "do it" : "outsider";
+  
+  if (isLoggedIn) {
+    toolbar.style.display = "flex";
+    editor.contentEditable = "true";
+  } else {
+    toolbar.style.display = "none";
+    editor.contentEditable = "false";
+  }
+  
+  // Check initial state
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) {
+    toolbar.style.display = "flex";
+    editor.contentEditable = "true";
+    adminToggle.textContent = "do it";
+  }
+});
+
+// ==========================================================
+// TOOLBAR INTERACTION
+// ==========================================================
+
+// Use click handler for execCommand; ensure editor is focused before running command
+toolbar.addEventListener("click", (e) => {
+  if (!editor.isContentEditable) return; // Only work if editable
+  
+  const btn = e.target.closest("button");
+  if (!btn) return;
+  const cmd = btn.dataset.cmd;
+  
+  // Handle rich-text commands
+  if (cmd) {
+    editor.focus();
+    document.execCommand(cmd, false, null);
+    return;
+  }
+  
+  // Handle specific button actions
+  if (btn.id === "addImageBrat") {
+    imageInput.click();
+    return;
+  }
+  
+  if (btn.id === "saveBrat") {
+    // Trigger save to Supabase
+    saveBratContent();
+    return;
+  }
+});
+
+// Font family
+document.getElementById("fontSelect-brat").addEventListener("change", (e) => {
+  if (!editor.isContentEditable) return;
+  editor.focus();
+  document.execCommand("fontName", false, e.target.value);
+});
+
+// Font size (use fontSize 7 hack, then set px)
+document.getElementById("sizeSelect-brat").addEventListener("change", (e) => {
+  if (!editor.isContentEditable) return;
+  const px = e.target.value + "px";
+  editor.focus();
+  document.execCommand("fontSize", false, "7");
+  editor.querySelectorAll("font[size='7']").forEach(el => {
+    el.removeAttribute("size");
+    el.style.fontSize = px;
+  });
+});
+
+// Color
+document.getElementById("color-brat").addEventListener("input", (e) => {
+  if (!editor.isContentEditable) return;
+  editor.focus();
+  document.execCommand("foreColor", false, e.target.value);
+});
+
+// ==========================================================
+// SAVE TO SUPABASE
+// ==========================================================
+async function saveBratContent() {
+  if (!editor.isContentEditable) {
+    alert("⚠️ You must be logged in to save.");
+    return;
+  }
+  
+  const html = editor.innerHTML.trim();
+  
+  try {
+    // Check if record exists
+    const { data: existing } = await supabase
+      .from('content')
+      .select('id')
+      .eq('page', 'brat')
+      .single();
+    
+    let result;
+    if (existing) {
+      // Update existing
+      result = await supabase
+        .from('content')
+        .update({ brat_content: html, updated_at: new Date().toISOString() })
+        .eq('page', 'brat');
+    } else {
+      // Insert new
+      result = await supabase
+        .from('content')
+        .insert([{ page: 'brat', brat_content: html }]);
+    }
+    
+    if (result.error) throw result.error;
+    alert("✅ BRAT content saved to Supabase!");
+  } catch (error) {
+    console.error('Save error:', error);
+    alert("❌ Save failed: " + error.message);
+  }
+}
+
+// ==========================================================
+// IMAGE INSERT
+// ==========================================================
+imageInput.addEventListener("change", async (e) => {
+  if (!editor.isContentEditable) return;
+  
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  try {
+    // Upload to Supabase Storage
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+    
+    const { data, error } = await supabase.storage
+      .from('images')
+      .upload(fileName, file);
+    
+    if (error) throw error;
+    
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('images')
+      .getPublicUrl(fileName);
+    
+    // Insert image into editor
+    editor.focus();
+    document.execCommand("insertImage", false, publicUrl);
+    
+    // Immediately save to Supabase
+    await saveBratContent();
+    
+  } catch (error) {
+    console.error('Image upload error:', error);
+    alert("❌ Image upload failed: " + error.message);
+  } finally {
+    e.target.value = null;
+  }
+});
+
+// ==========================================================
+// SCROLL SHADOW EFFECT FOR TOOLBAR
+// ==========================================================
+window.addEventListener("scroll", () => {
+  const t = toolbar;
+  if (!t || t.style.display === "none") return;
+  if (window.scrollY > 8) t.classList.add("scrolled");
+  else t.classList.remove("scrolled");
+});
+
+// ==========================================================
+// Accessibility: keyboard shortcuts for bold/italic/underline (CMD/CTRL+B/I/U)
+window.addEventListener("keydown", (e) => {
+  if (!editor.isContentEditable) return;
+  if ((e.ctrlKey || e.metaKey) && !e.shiftKey) {
+    if (e.key.toLowerCase() === 'b') { e.preventDefault(); document.execCommand('bold'); }
+    if (e.key.toLowerCase() === 'i') { e.preventDefault(); document.execCommand('italic'); }
+    if (e.key.toLowerCase() === 'u') { e.preventDefault(); document.execCommand('underline'); }
+  }
+});
+
+// ==========================================================
+// ADMIN LOGIN/LOGOUT TOGGLE
+// ==========================================================
+adminToggle.addEventListener("click", async () => {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (user) {
+    try { 
+      await supabase.auth.signOut();
+      alert("Signed out");
+    } 
+    catch(err) { alert("Sign-out failed: " + err.message); }
+    return;
+  }
+  
+  // Redirect to index for login
+  alert("Please login on the HOME page.");
+  window.location.href = "index.html";
+});
+
+// ==========================================================
+// REAL-TIME UPDATES
+// ==========================================================
+// Subscribe to changes in the brat content
+supabase
+  .channel('brat-content-changes')
+  .on('postgres_changes', {
+    event: '*',
+    schema: 'public',
+    table: 'content',
+    filter: 'page=eq.brat'
+  }, (payload) => {
+    if (payload.new && payload.new.brat_content && document.activeElement !== editor) {
+      editor.innerHTML = payload.new.brat_content;
+    }
+  })
+  .subscribe();
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    // Tambahkan class untuk memicu animasi masuk
+    document.body.classList.add("bokeh-blur");
+    
+    // Hapus class ini setelah animasi selesai agar tidak mengganggu navigasi internal
+    setTimeout(() => {
+        document.body.classList.remove("bokeh-blur");
+    }, 600); // Sinkronkan dengan durasi CSS
+});
+</script>
+</body>
+</html>

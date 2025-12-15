@@ -1,0 +1,865 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ART — AW</title>
+
+<!-- FONTS -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Doto:wght@100..900&family=Jersey+10&family=Press+Start+2P&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&family=Stack+Sans+Notch:wght@200..700&display=swap" rel="stylesheet">
+
+<style>
+/* -------------------- VARIABLES -------------------- */
+:root {
+  --gutter: 40px;
+  --header-h: 130px;
+  --footer-h: 40px;
+  --toolbar-gap: 10px;
+  --rotateSpeed: 300ms;
+}
+
+/* ======================= BASE ======================= */
+body.page-art {
+  background: linear-gradient(135deg, #0b0d0b, #0f1211);
+  color: #d6d6d6;
+  min-height: 100vh;
+  font-family: "Doto", sans-serif;
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ======================= HEADER ======================= */
+.site-header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--header-h);
+  display: flex;
+  align-items: center;
+  padding: 18px 28px;
+  gap: 1rem;
+  font-family: "Stack Sans Notch", sans-serif;
+  font-size: 28px;
+  font-weight: 600;
+  z-index: 10000;
+    text-shadow:
+    0 0 8px #688e9f,
+    0 0 12px #7094a5,
+    0 0 20px #b6b6b692,
+    0 0 30px #869da863;
+}
+
+.main-nav {
+  margin-left: auto;
+}
+
+.main-nav a,
+.main-nav .menu-btn {
+  font-size: 16px;
+  letter-spacing: 1px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  color: #fff;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  font-family: "Doto", sans-serif;
+}
+
+.main-nav a:hover,
+.main-nav .menu-btn:hover {
+  background-color: #eefaff;
+  color: #10b457;
+  text-shadow: 0 0 8px #4FC3F7;
+  animation: pulseGlow 1s infinite alternate;
+  font-family: "Doto", sans-serif;
+}
+
+@keyframes pulseGlow {
+  0% { text-shadow: 0 0 4px #4FC3F7; }
+  100% { text-shadow: 0 0 12px #4FC3F7; }
+}
+
+
+/* Zoom POP (Instagram/Pinterest style) */
+.zoom-pop {
+  animation: zoomPop 0.5s cubic-bezier(.25,.8,.25,1) forwards;
+}
+@keyframes zoomPop {
+  0%   { transform: scale(0.7); opacity: 0; }
+  70%  { transform: scale(1.08); opacity: 0.9; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ===================== PIXEL CONTROLS ===================== */
+.pixel-controls {
+  position: fixed;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(40,40,40,0.5);
+  backdrop-filter: blur(10px);
+  z-index: 10005;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s, transform .3s;
+}
+
+body.logged-in .pixel-controls {
+  opacity: 1;
+  pointer-events: all;
+  transform: translateX(-50%);
+}
+
+.pixel-controls input { width: 120px; }
+
+.pixelated { image-rendering: pixelated; }
+.pixelated.jitter { animation: pixelJitter .25s infinite alternate; }
+@keyframes pixelJitter {
+  0% { transform: translate(0,0); }
+  25% { transform: translate(1px,-1px); }
+  50% { transform: translate(-1px,1px); }
+  75% { transform: translate(1px,1px); }
+  100% { transform: translate(0,0); }
+}
+
+/* ===================== ZOOM MODAL ===================== */
+.zoom-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0,0,0,.85);
+  z-index: 99999;
+  padding: 20px;
+}
+
+.zoom-modal.open { display: flex; }
+.zoom-modal img {
+  max-width: 90vw;
+  max-height: 80vh;
+  border-radius: 12px;
+  object-fit: contain;
+  box-shadow: 0 0 40px rgba(255,255,255,0.12);
+}
+
+/* ===================== GALLERY ===================== */
+.gallery-container {
+  position: fixed;
+  inset: 150px 0 80px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  z-index: 1;
+  padding: 0;
+}
+
+#galleryLoop {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2vw;
+  will-change: transform;
+  transition: none;
+  position: relative;
+}
+
+#galleryLoop img {
+  object-fit: cover;
+  object-position: center;
+  border-radius: 10px;
+  opacity: .6;
+  transform: rotateZ(-90deg) scale(.95);
+  transform-origin: center center;
+  flex-shrink: 0;
+  transition: transform var(--rotateSpeed) ease, opacity .15s ease;
+}
+
+#galleryLoop img.active {
+  transform: rotateZ(0deg) scale(1.12);
+  opacity: 1;
+  z-index: 3;
+}
+
+@media (min-width:1201px){ #galleryLoop img { width: 18vw; height: calc(18vw * 4/3); } }
+@media (max-width:1200px) and (min-width:769px){ #galleryLoop img { width: 26vw; height: calc(26vw * 4/3); } }
+@media (max-width:768px){ #galleryLoop img { width: 56vw; height: calc(56vw * 4/3); } }
+
+/* ===================== TOOLBAR ===================== */
+.editor-toolbar-fixed {
+  position: fixed;
+  top: calc(var(--header-h) + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: var(--toolbar-gap);
+  align-items: center;
+  background: rgba(20,20,20,0.92);
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 10px 14px;
+  border-radius: 12px;
+  z-index: 10010;
+  backdrop-filter: blur(6px);
+}
+
+.editor-toolbar-fixed button,
+.editor-toolbar-fixed select {
+  background: rgba(255,255,255,0.04);
+  color: #e8e8e8;
+  border: 1px solid rgba(255,255,255,0.06);
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.editor-toolbar-fixed[hidden] { display: none; }
+
+/* ===================== ADMIN TOGGLE ===================== */
+#adminToggle {
+  position: fixed;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%);
+  z-index: 10001;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid transparent;
+  color: #ffffff;
+  font-family: "Doto", sans-serif;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+}
+
+#adminToggle:hover {
+  background: rgba(79,194,247,0.2);
+  border-color: rgba(79,194,247,0.6);
+  box-shadow: 0 0 12px rgba(79,194,247,0.7);
+}
+
+/* ===================== HELPER CLASSES ===================== */
+.sr-only { position: absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space: nowrap; border:0; }
+
+</style>
+</head>
+<body class="page-art">
+
+<!-- HEADER -->
+<header class="site-header">
+  <h1 class="art">ART</h1>
+  <nav class="main-nav">
+    <a href="index.html" class="menu-btn">HOME</a>
+    <a href="brat.html" class="menu-btn">BRAT</a>
+    <a href="yapper.html" class="menu-btn">YAPS</a>
+  </nav>
+</header>
+
+<!-- EDITOR TOOLBAR -->
+<div class="editor-toolbar-fixed" id="toolbar-art" hidden>
+  <button id="addImageArt">Add</button>
+  <button id="deleteImageArt">Delete</button>
+  <button id="saveArt">Save</button>
+</div>
+
+<!-- GALLERY -->
+<div class="gallery-container">
+  <div id="galleryLoop" aria-live="polite"></div>
+</div>
+
+<!-- PIXEL CONTROLS -->
+<div class="pixel-controls" aria-hidden="true">
+  <label for="pixelRange">Pixel Blur</label>
+  <input type="range" id="pixelRange" min="1" max="100" value="1">
+  <button id="togglePixel" class="glass-btn">Toggle</button>
+</div>
+
+<!-- NATIVE CONTROLS HIDDEN -->
+<div class="controls" style="display:none;">
+  <button id="delBtn">Delete</button>
+  <button id="addBtn">Add</button>
+</div>
+<input type="file" id="imageUpload" accept="image/*" hidden multiple>
+
+<!-- ZOOM MODAL -->
+<div id="zoomModal" class="zoom-modal" aria-hidden="true">
+  <img id="zoomImage" alt="Gambar yang diperbesar">
+</div>
+
+<!-- ADMIN TOGGLE -->
+<button id="adminToggle" class="admin-toggle" aria-live="polite">outsider</button>
+
+<!-- SCRIPT -->
+<!-- Ganti bagian script type="module" dengan ini: -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ==========================================================
+// SUPABASE INITIALIZATION
+// ==========================================================
+const supabaseUrl = 'https://exnzopxpseoztfhrtrxj.supabase.co'
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4bnpvcHhwc2VvenRmaHJ0cnhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0MzgyNzIsImV4cCI6MjA4MTAxNDI3Mn0.x6oP9AfSFd0LuaQxCHmBLzcD23CGO8BA0iMkubtkG24'
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey)
+
+// ==========================================================
+// GLOBALS & ELEMENTS
+// ==========================================================
+const galleryLoop = document.getElementById("galleryLoop");
+const imageUpload  = document.getElementById("imageUpload");
+const addBtnNative = document.getElementById("addBtn");
+const delBtnNative = document.getElementById("delBtn");
+const zoomModal    = document.getElementById("zoomModal");
+const zoomImage    = document.getElementById("zoomImage");
+const pixelRange   = document.getElementById("pixelRange");
+const togglePixel  = document.getElementById("togglePixel");
+const toolbar      = document.getElementById("toolbar-art");
+const adminToggle  = document.getElementById("adminToggle");
+const saveBtn      = document.getElementById("saveArt");
+const addImageArtBtn = document.getElementById("addImageArt");
+const deleteImageArtBtn = document.getElementById("deleteImageArt");
+
+/* ---------------- initialize application state ---------------- */
+window.images = window.images || [];         // thumbnails (cloudinary transformed)
+window.originals = window.originals || [];   // original or compressed URLs
+window.imageSettings = window.imageSettings || []; // per-image settings { pixelLevel:1 }
+let currentIndex = 0;
+let isDragging = false;
+let dragStartX = 0;
+let dragDiff = 0;
+let wheelReady = true;
+let scrollBuffer = [];
+
+/* make renderGallery callable outside */
+window.renderGallery = renderGallery;
+
+// ==========================================================
+// HELPERS
+// ==========================================================
+function safeInt(v, def=0){ const n = parseInt(v); return Number.isFinite(n) ? n : def; }
+function getGapValue(){ const gap = getComputedStyle(galleryLoop).gap || "30px"; return parseFloat(gap); }
+function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+
+// ==========================================================
+// RENDER GALLERY
+// ==========================================================
+function renderGallery(){
+  // If no images, show placeholder
+  if (!Array.isArray(window.images) || window.images.length === 0) {
+    galleryLoop.innerHTML = `<p style="opacity:.4;color:white;font-size:1rem;">Belum ada foto. Login untuk menambah.</p>`;
+    return;
+  }
+
+  // Build visual infinite loop window - we'll duplicate center window (3x)
+  galleryLoop.innerHTML = "";
+  const images = window.images;
+  const originals = window.originals;
+  const settings = window.imageSettings;
+
+  // We'll render a centered window of 3 sets to visually loop.
+  const total = [...images, ...images, ...images];
+  total.forEach((src, i) => {
+    const img = document.createElement("img");
+    img.src = src || images[i % images.length] || "";
+    const real = i % images.length;
+    img.dataset.index = real;
+    img.draggable = false;
+
+    // if there is pixel setting >1, apply base effect async (do not block)
+    const s = settings && settings[real] ? settings[real].pixelLevel : 1;
+    if (s > 1 && originals && originals[real]) {
+      // apply effect but don't alter original arrays here
+      applyEffectToImage(img, originals[real], s, false).catch(()=>{/*ignore*/});
+    }
+
+    img.addEventListener("dblclick", () => openZoom(real));
+    galleryLoop.appendChild(img);
+  });
+
+  // After DOM inserted, determine center image as active
+  highlightActive();
+}
+
+// ==========================================================
+// NAVIGATION (next/prev)
+// ==========================================================
+function nextImage(){
+  if (!window.images || window.images.length === 0) return;
+  const first = galleryLoop.firstElementChild;
+  if (!first) return;
+  const gap = getGapValue();
+  const w = first.offsetWidth + gap;
+  // animate left
+  galleryLoop.style.transition = "transform .55s cubic-bezier(0.4,0,0.3,1)";
+  galleryLoop.style.transform = `translateX(-${w}px)`;
+  // after animation, move first to end and reset transform
+  setTimeout(()=>{
+    galleryLoop.appendChild(first);
+    galleryLoop.style.transition = "none";
+    galleryLoop.style.transform = "translateX(0)";
+    highlightActive();
+  }, 550);
+}
+
+function prevImage(){
+  if (!window.images || window.images.length === 0) return;
+  const last = galleryLoop.lastElementChild;
+  if (!last) return;
+  const gap = getGapValue();
+  const w = last.offsetWidth + gap;
+  // prep: move last to start instantly and shift left
+  galleryLoop.insertBefore(last, galleryLoop.firstElementChild);
+  galleryLoop.style.transition = "none";
+  galleryLoop.style.transform = `translateX(-${w}px)`;
+  // then animate back to 0
+  setTimeout(()=>{
+    galleryLoop.style.transition = "transform .55s cubic-bezier(0.4,0,0.3,1)";
+    galleryLoop.style.transform = "translateX(0)";
+  }, 10);
+  setTimeout(highlightActive, 560);
+}
+
+// ==========================================================
+// HIGHLIGHT ACTIVE
+// ==========================================================
+function highlightActive(){
+  const imgs = Array.from(galleryLoop.querySelectorAll("img"));
+  const numImages = window.images ? window.images.length : 0;
+  if (numImages === 0 || imgs.length === 0) return;
+
+  // Find center visible element: the one closest to gallery center (robust to changes)
+  const rect = galleryLoop.getBoundingClientRect();
+  const centerX = rect.left + rect.width / 2;
+  let closest = null, closestDist = Infinity;
+  imgs.forEach(img => {
+    const r = img.getBoundingClientRect();
+    const imgCenter = r.left + r.width / 2;
+    const d = Math.abs(centerX - imgCenter);
+    if (d < closestDist){ closestDist = d; closest = img; }
+  });
+  if (!closest) return;
+
+  imgs.forEach(i => i.classList.remove("active"));
+  closest.classList.add("active");
+
+  // update currentIndex from data-index
+  const newIndex = safeInt(closest.dataset.index, 0);
+  currentIndex = clamp(newIndex, 0, Math.max(0, numImages - 1));
+
+  // sync pixel slider
+  const currentSettings = window.imageSettings[currentIndex] || { pixelLevel: 1 };
+  pixelRange.value = currentSettings.pixelLevel || 1;
+  togglePixel.textContent = (currentSettings.pixelLevel > 1) ? `Pixel ON (${currentSettings.pixelLevel})` : 'Toggle';
+}
+
+// ==========================================================
+// WHEEL + DRAG HANDLING
+// ==========================================================
+(function attachWheelDrag(){
+  let wheelThrottle = null;
+
+  galleryLoop.addEventListener("wheel", (e) => {
+    // prevent page scroll while over gallery
+    e.preventDefault();
+    if (!wheelReady || isDragging) return;
+    const val = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+    scrollBuffer.push(val);
+    if (scrollBuffer.length > 3) scrollBuffer.shift();
+    const avg = scrollBuffer.reduce((a,b) => a+b, 0) / scrollBuffer.length;
+    wheelReady = false;
+    if (avg > 0) nextImage(); else prevImage();
+    wheelThrottle = setTimeout(()=> wheelReady = true, 420);
+  }, { passive:false });
+
+  // Drag handlers (mouse + touch)
+  galleryLoop.addEventListener("mousedown", (e) => { isDragging = true; dragStartX = e.pageX; dragDiff = 0; });
+  galleryLoop.addEventListener("touchstart", (e) => { isDragging = true; dragStartX = e.touches[0].pageX; dragDiff = 0; }, { passive: true });
+
+  galleryLoop.addEventListener("mousemove", (e) => { if(!isDragging) return; dragDiff = e.pageX - dragStartX; });
+  galleryLoop.addEventListener("touchmove", (e) => { if(!isDragging) return; dragDiff = e.touches[0].pageX - dragStartX; }, { passive: true });
+
+  function handleDragResult(){
+    const DRAG_THRESHOLD = 65;
+    isDragging = false;
+    if (Math.abs(dragDiff) < DRAG_THRESHOLD) return;
+    if (dragDiff < 0) nextImage(); else prevImage();
+    dragDiff = 0;
+  }
+  galleryLoop.addEventListener("mouseup", handleDragResult);
+  galleryLoop.addEventListener("touchend", handleDragResult);
+  galleryLoop.addEventListener("mouseleave", ()=> { if(isDragging) isDragging = false; });
+})();
+
+// ==========================================================
+// ZOOM
+// ==========================================================
+function openZoom(i){
+  const src = (window.originals && window.originals[i]) || (window.images && window.images[i]) || "";
+  zoomImage.src = src;
+  zoomModal.classList.add("open");
+  zoomModal.setAttribute("aria-hidden","false");
+}
+function closeZoom(){
+  zoomModal.classList.remove("open");
+  zoomModal.setAttribute("aria-hidden","true");
+  zoomImage.src = "";
+}
+zoomModal.addEventListener("click", (e) => {
+  if (e.target === zoomModal || e.target === zoomImage) closeZoom();
+});
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeZoom(); });
+
+// ==========================================================
+// PIXEL EFFECT (CANVAS)
+// ==========================================================
+function applyEffectToImage(imgElement, baseSrc, px, updateSettings = true){
+  return new Promise((resolve, reject) => {
+    if (!imgElement) return reject(new Error("imgElement missing"));
+    const dataIndex = safeInt(imgElement.dataset.index, 0);
+
+    if (px <= 1){
+      // restore original thumbnail
+      imgElement.src = window.images && window.images[dataIndex] ? window.images[dataIndex] : imgElement.src;
+      imgElement.classList.remove("pixelated","jitter");
+      togglePixel.textContent = 'Toggle';
+      if (updateSettings) { window.imageSettings[dataIndex] = window.imageSettings[dataIndex] || {}; window.imageSettings[dataIndex].pixelLevel = 1; }
+      return resolve();
+    }
+
+    const img = new Image();
+    img.crossOrigin = "Anonymous";
+    img.onload = () => {
+      try {
+        const c = document.createElement("canvas");
+        const ctx = c.getContext("2d");
+        c.width = img.width; c.height = img.height;
+        const sw = Math.max(1, Math.floor(img.width / px));
+        const sh = Math.max(1, Math.floor(img.height / px));
+        ctx.imageSmoothingEnabled = false;
+        // draw scaled down
+        ctx.drawImage(img, 0, 0, sw, sh);
+        // draw scaled up from the small canvas
+        ctx.drawImage(c, 0, 0, sw, sh, 0, 0, img.width, img.height);
+        imgElement.src = c.toDataURL("image/jpeg", 0.9);
+        imgElement.classList.add("pixelated");
+        imgElement.classList.toggle("jitter", px > 75);
+        togglePixel.textContent = `Pixel ON (${px})`;
+        if (updateSettings) {
+          window.imageSettings[dataIndex] = window.imageSettings[dataIndex] || {};
+          window.imageSettings[dataIndex].pixelLevel = px;
+        }
+        return resolve();
+      } catch (err) {
+        console.error("applyEffectToImage error:", err);
+        // fallback
+        imgElement.src = window.images && window.images[dataIndex] ? window.images[dataIndex] : imgElement.src;
+        return reject(err);
+      }
+    };
+    img.onerror = (err) => {
+      console.error("Failed to load image for pixel effect:", baseSrc, err);
+      imgElement.src = window.images && window.images[dataIndex] ? window.images[dataIndex] : imgElement.src;
+      return reject(err);
+    };
+    img.src = baseSrc;
+  });
+}
+
+function applySensorEffect(px){
+  const act = galleryLoop.querySelector("img.active");
+  if (!act) return;
+  const i = safeInt(act.dataset.index, 0);
+  const src = window.originals && window.originals[i];
+  if (!src) return;
+  applyEffectToImage(act, src, px, true).catch(()=>{/*ignored*/});
+}
+
+// ==========================================================
+// FILE COMPRESS + UPLOAD (Supabase Storage)
+// ==========================================================
+const MAX_FILE_SIZE_BYTES = 9437184; // 9MB
+
+async function compressAndConvertFile(file, quality = 0.75, type = 'image/jpeg'){
+  return new Promise((resolve, reject) => {
+    if (!file.type.startsWith('image/')) return resolve(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const im = new Image();
+      im.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = im.width;
+          canvas.height = im.height;
+          ctx.drawImage(im, 0, 0, im.width, im.height);
+          canvas.toBlob((blob) => {
+            if (!blob) return reject(new Error("Canvas toBlob failed"));
+            const compressedFile = new File([blob], file.name, { type, lastModified: Date.now() });
+            resolve(compressedFile);
+          }, type, quality);
+        } catch (err) { reject(err); }
+      };
+      im.onerror = reject;
+      im.src = ev.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function uploadTask(file){
+  if (file.size > MAX_FILE_SIZE_BYTES) {
+    throw new Error(`File size too large. Maximum is ${MAX_FILE_SIZE_BYTES / 1024 / 1024} MB.`);
+  }
+  
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+  
+  // Upload ke Supabase Storage
+  const { data, error } = await supabase.storage
+    .from('images')
+    .upload(fileName, file);
+  
+  if (error) throw error;
+  
+  // Dapatkan URL publik
+  const { data: { publicUrl } } = supabase.storage
+    .from('images')
+    .getPublicUrl(fileName);
+  
+  return { transformedUrl: publicUrl, originalUrl: publicUrl };
+}
+
+window.uploadTask = uploadTask; // expose
+
+// ==========================================================
+// SUPABASE LOAD & SAVE
+// ==========================================================
+async function loadGalleryData() {
+  try {
+    const { data, error } = await supabase
+      .from('content')
+      .select('art_content')
+      .eq('page', 'art')
+      .single();
+    
+    if (error && error.code !== 'PGRST116') throw error;
+    
+    if (data && data.art_content) {
+      window.images = Array.isArray(data.art_content.images) ? data.art_content.images : [];
+      window.originals = Array.isArray(data.art_content.originals) ? data.art_content.originals : [];
+      window.imageSettings = Array.isArray(data.art_content.imageSettings) ? data.art_content.imageSettings : [];
+      renderGallery();
+    }
+  } catch (error) {
+    console.error('Error loading gallery data:', error);
+  }
+}
+
+async function saveGalleryToSupabase() {
+  if (!document.body.classList.contains("logged-in")) return;
+  
+  try {
+    const { data: existing } = await supabase
+      .from('content')
+      .select('id')
+      .eq('page', 'art')
+      .single();
+    
+    const galleryData = {
+      images: window.images || [],
+      originals: window.originals || [],
+      imageSettings: window.imageSettings || []
+    };
+    
+    let result;
+    if (existing) {
+      // Update existing
+      result = await supabase
+        .from('content')
+        .update({ art_content: galleryData, updated_at: new Date().toISOString() })
+        .eq('page', 'art');
+    } else {
+      // Insert new
+      result = await supabase
+        .from('content')
+        .insert([{ page: 'art', art_content: galleryData }]);
+    }
+    
+    if (result.error) throw result.error;
+    console.log("Saved to Supabase");
+  } catch (error) {
+    console.error("Supabase save failed", error);
+  }
+}
+
+// Real-time subscription
+supabase
+  .channel('art-content-changes')
+  .on('postgres_changes', {
+    event: '*',
+    schema: 'public',
+    table: 'content',
+    filter: 'page=eq.art'
+  }, (payload) => {
+    if (payload.new && payload.new.art_content) {
+      window.images = Array.isArray(payload.new.art_content.images) ? payload.new.art_content.images : [];
+      window.originals = Array.isArray(payload.new.art_content.originals) ? payload.new.art_content.originals : [];
+      window.imageSettings = Array.isArray(payload.new.art_content.imageSettings) ? payload.new.art_content.imageSettings : [];
+      renderGallery();
+    }
+  })
+  .subscribe();
+
+// Initial load
+loadGalleryData();
+
+// ==========================================================
+// DOMContentLoaded: attach listeners
+// ==========================================================
+document.addEventListener("DOMContentLoaded", () => {
+  // toolbar <-> native controls bridging
+  addImageArtBtn?.addEventListener("click", ()=> imageUpload.click());
+  deleteImageArtBtn?.addEventListener("click", ()=> delBtnNative.click());
+
+  addBtnNative?.addEventListener("click", ()=> imageUpload.click());
+  delBtnNative?.addEventListener("click", () => {
+    if (!document.body.classList.contains("logged-in")) return; // Admin check
+    if (!window.images || window.images.length === 0) return;
+    // remove current index
+    window.images.splice(currentIndex, 1);
+    window.originals.splice(currentIndex, 1);
+    window.imageSettings.splice(currentIndex, 1);
+    // normalize index
+    if (window.images.length > 0) currentIndex = currentIndex % window.images.length;
+    else currentIndex = 0;
+    renderGallery();
+    saveGalleryToSupabase();
+  });
+
+  imageUpload?.addEventListener("change", async (e) => {
+    if (!document.body.classList.contains("logged-in")) { // Admin check
+      alert("⚠️ You must be logged in to upload images.");
+      e.target.value = null;
+      return;
+    }
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    try {
+      const uploads = await Promise.all(files.map(async (f) => {
+        const compressed = await compressAndConvertFile(f, 0.75, 'image/jpeg');
+        return await uploadTask(compressed);
+      }));
+      window.images = window.images || [];
+      window.originals = window.originals || [];
+      window.imageSettings = window.imageSettings || [];
+      uploads.forEach(u => {
+        window.images.push(u.transformedUrl);
+        window.originals.push(u.originalUrl);
+        window.imageSettings.push({ pixelLevel: 1 });
+      });
+      currentIndex = Math.max(0, window.images.length - 1);
+      renderGallery();
+      saveGalleryToSupabase();
+      alert(`✅ ${uploads.length} image(s) uploaded.`);
+    } catch (err) {
+      console.error("Upload error", err);
+      alert("❌ Upload failed: " + (err.message || err));
+    } finally {
+      e.target.value = null;
+    }
+  });
+
+  // pixel controls (only when logged-in class present)
+  togglePixel?.addEventListener("click", () => {
+    if (!document.body.classList.contains('logged-in')) return;
+    if (!window.imageSettings || !window.imageSettings[currentIndex]) return;
+    const cur = window.imageSettings[currentIndex].pixelLevel || 1;
+    const newLevel = cur > 1 ? 1 : 50;
+    pixelRange.value = newLevel;
+    applySensorEffect(newLevel);
+    saveGalleryToSupabase();
+  });
+
+  pixelRange?.addEventListener("input", (e) => {
+    if (!document.body.classList.contains('logged-in')) return;
+    const val = safeInt(e.target.value, 1);
+    applySensorEffect(val);
+    // Auto-save on input change
+    saveGalleryToSupabase();
+  });
+
+  // save button
+  saveBtn?.addEventListener("click", () => {
+    if (!document.body.classList.contains('logged-in')) {
+      alert("⚠️ You must be logged in to save.");
+      return;
+    }
+    saveGalleryToSupabase();
+    alert("✅ Art gallery saved to Supabase!");
+  });
+});
+
+// ==========================================================
+// AUTH STATE MANAGEMENT
+// ==========================================================
+supabase.auth.onAuthStateChange((event, session) => {
+  const isLoggedIn = !!session;
+  document.body.classList.toggle("logged-in", isLoggedIn);
+  toolbar.hidden = !isLoggedIn;
+  adminToggle.textContent = isLoggedIn ? "do it" : "outsider";
+  
+  // Check initial state
+  supabase.auth.getUser().then(({ data: { user } }) => {
+    if (user) {
+      toolbar.hidden = false;
+      adminToggle.textContent = "do it";
+    }
+  });
+});
+
+// ==========================================================
+// ADMIN TOGGLE
+// ==========================================================
+adminToggle?.addEventListener("click", async () => {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (user) {
+    try { 
+      await supabase.auth.signOut(); 
+      alert("Signed out");
+    } catch(err){ 
+      alert("Sign-out failed: " + err.message); 
+    }
+  } else {
+    // Redirect to index for login
+    alert("Please login on the HOME page.");
+    window.location.href = "index.html";
+  }
+});
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    // Tambahkan class untuk memicu animasi masuk
+    document.body.classList.add("zoom-pop");
+    
+    // Hapus class ini setelah animasi selesai agar tidak mengganggu navigasi internal
+    setTimeout(() => {
+        document.body.classList.remove("zoom-pop");
+    }, 900); // Sinkronkan dengan durasi CSS
+});
+</script>
+</body>
+</html>

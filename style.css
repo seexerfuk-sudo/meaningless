@@ -1,0 +1,672 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Doto:wght@100..900&family=Press+Start+2P&family=Stack+Sans+Notch:wght@200..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Doto:wght@100..900&family=Press+Start+2P&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&family=Stack+Sans+Notch:wght@200..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Doto:wght@100..900&family=Jersey+10&family=Press+Start+2P&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&family=Stack+Sans+Notch:wght@200..700&display=swap');
+
+/* ======================================================
+    1) GLOBAL RESET & BASE
+====================================================== */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --rotateSpeed: 0.15s;
+    --navTop: 15px; 
+    --navTopSmall: 5px; 
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+  background: none !important;
+}
+
+/* background khusus index */
+body.page-index {
+  background-image: url('asset/deskop.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+
+
+
+@media (max-width: 720px) {
+  body.page-index::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: url('asset/mobile.png');
+    background-size: cover;
+    background-position: center top;
+    background-repeat: no-repeat;
+    z-index: -1;
+  }
+}
+
+
+
+/* ============================================================
+   MAIN PAGE — SLIDE-IN KONTEN SETELAH INTRO
+============================================================ */
+
+/* Header tetap */
+.site-header {
+  opacity: 1;
+  transform: none;
+}
+
+/* Elemen dalam header slide-in */
+.site-header > * {
+  transition: transform 1.2s ease-out, opacity 1.2s ease-out;
+}
+
+/* Saat INTRO aktif */
+body.page-index:not(.main-visible) .site-header > * {
+  opacity: 0;
+  transform: translateY(-60px);
+  pointer-events: none;
+}
+
+/* Setelah INTRO selesai */
+body.page-index.main-visible .site-header > * {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+
+
+/* INTRO BASE */
+.intro-screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* vertikal center */
+  align-items: center;     /* horizontal center */
+    transition: opacity 0.1s ease; /* fade super cepat */
+  background: rgba(0, 0, 0, 0);
+  z-index: 9999;
+
+  transition: none !important;
+  transform: translateY(0);
+  opacity: 1;
+  text-align: center;      /* pastikan teks center */
+}
+
+.intro-bg {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
+  z-index: 1;
+  transition: opacity 0.1s ease; /* fade super cepat */
+}
+
+.intro-text, .intro-sub {
+  position: relative;
+  z-index: 2; /* selalu di atas background */
+}
+
+/* Bounce teks */
+.intro-text.intro-impact,
+.intro-sub.intro-impact {
+  display: inline-block;
+  animation: textBounce 3.8s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+
+
+
+/* KEYFRAMES ULTRA SMOOTH */
+@keyframes textBounce {
+    0%   { transform: translateY(-20vh); opacity: 1; }
+    30%  { transform: translateY(90vh); opacity: 0.7; }
+    45%  { transform: translateY(80vh); opacity: 0.75; }
+    60%  { transform: translateY(95vh); opacity: 0.6; }
+    70%  { transform: translateY(100vh); opacity: 0.55; }
+    80%  { transform: translateY(105vh); opacity: 0.4; }
+    90%  { transform: translateY(115vh); opacity: 0.25; }
+    100% { transform: translateY(150vh); opacity: 0; }
+}
+
+
+
+.blur-pop {
+    animation: blurPop 0.5s cubic-bezier(.25, .46, .45, .94) forwards;
+}
+
+@keyframes blurPop {
+    0% {
+        opacity: 0;
+        filter: blur(25px);
+        transform: scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        filter: blur(0);
+        transform: scale(1);
+    }
+
+}
+/* Zoom Blur POP */
+.zoom-blur-pop {
+  animation: zoomBlurPop 0.6s cubic-bezier(.25,.8,.25,1) forwards;
+}
+
+@keyframes zoomBlurPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.75);
+    filter: blur(18px);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.06);
+    filter: blur(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+
+/* Zoom + Fade */
+.zoom-fade-in {
+  animation: zoomFadeIn 0.7s ease forwards;
+}
+@keyframes zoomFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+    filter: blur(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+
+.bokeh-blur {
+  animation: bokehBlur 0.7s ease forwards;
+}
+
+@keyframes bokehBlur {
+  0% {
+    filter: blur(30px) saturate(0.7) brightness(0.2);
+    opacity: 0;
+    transform: scale(1.33);
+  }
+  70% {
+    filter: blur(8px) saturate(0.9) brightness(0.5);
+    opacity: 0.7;
+  }
+  100% {
+    filter: blur(0) saturate(1) brightness(1);
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+
+
+
+
+/* ======================================================
+    2) BACKGROUND CANVAS (Hanya aktif di page-index)
+====================================================== */
+canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    will-change: transform;
+    backface-visibility: hidden;
+}
+
+.you {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #ffffff;
+    font-family: "Quantico", sans-serif;
+    font-size: 16px;
+    pointer-events: none;
+    user-select: none;
+    text-shadow: 0 0 12px rgba(255,255,255,0.6);
+    animation: pulse 2s infinite ease-in-out;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.1); }
+}
+
+#canvas { z-index: 9997; }
+#orbitCanvas { z-index: 9998; }
+.you { z-index: 9999; }
+
+.fade-out * {
+    transition: opacity 0.6s ease;
+    opacity: 0 !important;
+}
+
+body, canvas, .you {
+    cursor: none; /* sembunyikan kursor default */
+}
+
+/* ======================================================
+    3) HEADER
+====================================================== */
+.site-header {
+    position: fixed;
+    justify-content: center;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    z-index: 10000;
+    font-family: "Stack Sans Notch", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 700;
+    font-style: normal;
+}
+
+.site-header .welcome {
+    color: #ffffffe6;
+    font-size: 5.6rem;
+    justify-content: center;
+    text-shadow:
+        0 0 8px #acccdb,
+        0 0 12px #b9e1f3,
+        0 0 20px #d3d3d3,
+        0 0 30px #b6d0dd;
+    animation: glowText 2s infinite alternate;
+
+}
+body.page-yapper .site-header .yapper,
+body.page-brat .site-header .brat {
+    font-size: 4rem;
+    color: #ffffff;
+    z-index: 10002;
+}
+
+  
+@keyframes glowText {
+    0% { text-shadow: 0 0 8px #677880, 0 0 12px #c4c4c4a0; }
+    50% { text-shadow: 0 0 20px #ffffff7d, 0 0 30px rgba(255, 255, 255, 0.69); }
+    100% { text-shadow: 0 0 8px #a5b4bb, 0 0 12px #bfd7e2a2; }
+}
+
+.site-header .subtitle {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 1.3rem;
+    margin-top: 10px;
+    font-family: "Quantico", sans-serif;
+    font-style: italic;
+    justify-content: center;
+    text-shadow:
+        0 0 4px rgba(0,202,202,0.8),
+        0 0 8px rgba(0,202,202,0.6),
+        0 0 16px rgba(0,202,202,0.4),
+        0 0 24px rgba(255,255,255,0.1);
+}
+
+/* ======================================================
+    4) NAVIGATION MENU
+====================================================== */
+.main-nav a,
+.main-nav .menu-btn {
+    font-size: 2rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    color: #ffffff;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    font-family: "Doto", sans-serif;
+}
+
+.main-nav a:hover,
+.main-nav .menu-btn:hover {
+    background-color: #eefaff;
+    color: #10b457;
+    text-shadow: 0 0 8px #4FC3F7;
+    animation: pulseGlow 1s infinite alternate;
+}
+
+@keyframes pulseGlow {
+    0% { text-shadow: 0 0 4px #4FC3F7; }
+    100% { text-shadow: 0 0 12px #4FC3F7; }
+}
+
+.site-header.small .main-nav {
+    margin-top: var(--navTopSmall);
+}
+
+.site-header.small .main-nav a,
+.site-header.small .main-nav .menu-btn {
+    font-size: 1rem; 
+    padding: 8px 14px;
+}
+
+/* ======================================================
+    LOGIN MODAL — GOLDEN SUISSE STYLE
+====================================================== */
+#loginModal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    justify-content: center;
+    align-items: center;
+
+    background: rgba(0,0,0,0.65); /* lebih soft dan premium */
+    backdrop-filter: blur(4px);
+
+    z-index: 10002;
+}
+
+#loginModal .modal-content {
+    width: 340px;
+    padding: 32px 36px;
+
+    background: #0e0e0e;                          /* panel kanan style */
+    border-radius: 22px;                           /* smooth curve */
+    border: 1px solid rgba(255,255,255,0.06);      /* soft subtle line */
+    box-shadow:
+        0 20px 40px rgba(0,0,0,0.45),
+        0 0 30px rgba(255,255,255,0.02);           /* tone elegan */
+
+    color: #e6e6e6;
+    font-family: "Inter", sans-serif;
+}
+
+#loginModal h3 {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 28px;
+    letter-spacing: 0.5px;
+}
+
+/* Inputs */
+#loginModal input[type="email"],
+#loginModal input[type="password"] {
+    width: 100%;
+    padding: 12px 14px;
+
+    margin-bottom: 16px;
+
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(255,255,255,0.18);
+
+    color: #fff;
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 0.3px;
+
+    outline: none;
+    transition: .3s ease;
+}
+
+#loginModal input:focus {
+    border-bottom-color: rgba(255,255,255,0.45);
+}
+
+/* Buttons */
+#loginModal button {
+    padding: 10px 18px;
+    margin: 6px;
+
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.15);
+
+    background: rgba(255,255,255,0.05);
+    color: #fff;
+
+    font-family: "Inter", sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+
+    transition: 0.25s ease;
+}
+
+#loginModal button:hover {
+    background: rgba(255,255,255,0.12);
+    border-color: rgba(255,255,255,0.25);
+}
+
+/* Error text */
+#loginError {
+    color: #ff6b6b;
+    font-size: 12px;
+    min-height: 18px;
+    margin-top: 8px;
+    letter-spacing: 0.4px;
+}
+
+/* ======================================================
+    HIDDEN ADMIN BUTTON (same elegant design)
+====================================================== */
+#adminToggle {
+    position: fixed;
+    bottom: 22px;
+    left: 50%;
+    transform: translateX(-50%);
+
+    padding: 10px 16px;
+    background: transparent;
+
+    color: #e6e6e6;
+    border: 1px solid rgba(255,255,255,0.1);
+
+    border-radius: 14px;
+    cursor: pointer;
+
+    font-family: "Inter", sans-serif;
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+
+    transition: 0.28s ease;
+    z-index: 10002;
+}
+
+#adminToggle:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.2);
+    box-shadow:
+        0 10px 20px rgba(0,0,0,0.35),
+        0 0 12px rgba(255,255,255,0.15);
+}
+
+
+/* ======================================================
+    7) MENU BUTTONS
+====================================================== */
+.menu-btn {
+    border: 2px solid #ffffff;
+    background: transparent;
+    color: #bdbdbd;
+    text-transform: uppercase;
+    padding: 8px 14px;
+    border-radius: 3px;
+    transition: all 0.3s ease;
+}
+
+.menu-btn:hover {
+    background: #d9dada;
+    color: #111;
+    text-shadow: 0 0 12px #fff;
+}
+
+/* ======================================================
+    8) RESPONSIVE (MOBILE & TABLET)
+====================================================== */
+@media (max-width: 720px) {
+
+    /* -------- HEADER -------- */
+    .site-header {
+        padding: 0 10px;
+        text-align: center;
+    }
+
+    .site-header .welcome {
+        font-size: 2.2rem;
+        line-height: 2.2rem;
+        margin-top: 20px;
+    }
+
+    .site-header .subtitle {
+        font-size: 0.9rem;
+        line-height: 1.2rem;
+        margin-top: 20px;
+    }
+
+    /* Atur posisi top khusus tiap halaman */
+    body.page-index .site-header { top: 80px; }
+    body.page-brat .site-header  { top: 80px; }
+    body.page-yapper .site-header { top: 80px; }
+
+    /* -------- NAVIGATION -------- */
+/* style.css: Line ~365 */
+.main-nav {
+    display: flex;
+    flex-direction: row;
+    /* justify-content: space-between; <--- GANTI */
+    justify-content: center; /* <--- BARU */
+    font-size: 0.9rem;
+    gap: 8px;
+    margin-top: 15px;
+    align-items: center;
+}
+
+    .main-nav a,
+    .main-nav .menu-btn {
+        flex: 1;
+        font-size: 1.5rem;
+        padding: 6px 0;       
+        text-align: center;
+        margin-top: -15px;
+    }
+
+    /* -------- LOGIN MODAL -------- */
+    #loginModal .modal-content {
+        width: 90%;
+        padding: 20px;
+    }
+
+    #loginModal input[type="email"],
+    #loginModal input[type="password"] {
+        font-size: 0.8rem;
+        padding: 6px 8px;
+    }
+
+    #loginModal button {
+        font-size: 0.8rem;
+        padding: 6px 10px;
+        width: 100%;
+        margin: 5px 0;
+    }
+
+    /* -------- ADMIN TOGGLE -------- */
+    #adminToggle {
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 8px 10px;
+        font-size: 0.7rem;
+    }
+}
+
+.intro-screen {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 50px;
+  z-index: 10009;
+  transition: opacity 0.8s ease;
+}
+
+.intro-text {
+  font-family: 'Doto', monospace;
+  color: white;
+  font-weight: 700;
+  white-space: pre-wrap;
+}
+
+.intro-sub {
+  font-family: "Quantico", sans-serif;
+  font-family: 'Doto', monospace;
+  margin-top: 20px;
+  color: #bbb;
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+#intro.fade-out {
+  opacity: 0;
+  transform: scale(1.2);
+  transition: opacity 0.9s ease, transform 0.9s ease;
+  pointer-events: none;
+}
+
+
+
+/* =======================================
+   SUPER RESPONSIVE TYPOGRAPHY
+   ======================================= */
+
+/* Intro Text (judul besar) */
+.intro-text {
+  font-size: clamp(1.8rem, 6vw, 4rem);     /* min, fluid, max */
+  line-height: 1.1;
+  font-weight: 600;
+}
+
+/* Intro Sub (subtitle kecil) */
+.intro-sub {
+  font-size: clamp(0.9rem, 2.8vw, 1.6rem); /* min, fluid, max */
+  opacity: 0.7;
+}
+
+/* Extra refinement for very small screens */
+@media (max-width: 400px) {
+  .intro-text {
+    font-size: clamp(1.4rem, 7vw, 3rem);
+  }
+  .intro-sub {
+    font-size: clamp(0.8rem, 3.5vw, 1.3rem);
+  }
+}
+
+/* Extra refinement for tablets */
+@media (min-width: 721px) and (max-width: 1024px) {
+  .intro-text {
+    font-size: clamp(2rem, 4vw, 3rem);
+  }
+  .intro-sub {
+    font-size: clamp(1rem, 1.8vw, 1.5rem);
+  }
+}
+

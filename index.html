@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>YOU COSMIC</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<!-- ================= BACKGROUND CANVAS ================= -->
+<body class="page-index">
+
+<div class="page-wrapper">
+    <canvas id="orbitCanvas"></canvas>
+    <canvas id="canvas"></canvas>
+    <div id="you" class="you">YOU</div>
+
+    
+    <!-- semua index content -->
+</div>
+
+
+<!-- ================= INTRO SCREEN ================= -->
+<div id="introScreen" class="intro-screen">
+  <div id="introBg" class="intro-bg"></div> <!-- layer hitam -->
+  <h1 id="introText" class="intro-text"></h1>
+  <p id="introSub" class="intro-sub"></p>
+</div>
+
+
+
+<!-- ================= HEADER ================= -->
+<header class="site-header">
+  <h1 class="welcome glow-text">WELCOME TO MEANINGLESSNESS</h1>
+  <p class="subtitle">
+    you're here because you sought purpose. too bad it's all meaningless, but hey, enjoy the ride anyway.
+  </p>
+
+  <nav class="main-nav a">
+    <button class="menu-btn" data-target="brat.html">BRAT</button>
+    <button class="menu-btn" data-target="art.html">ART</button>
+    <button class="menu-btn" data-target="yapper.html">YAPS</button>
+  </nav>
+</header>
+
+
+<!-- ================= ADMIN LOGIN ================= -->
+<button id="adminToggle" class="admin-toggle">insider</button>
+
+<div id="loginModal" class="modal">
+  <div class="modal-content">
+    <h3>insider</h3>
+    <input id="emailInput" type="email" placeholder="email" />
+    <input id="passwordInput" type="password" placeholder="nothing" />
+
+    <div class="modal-actions">
+      <button id="loginButton">digger</button>
+      <button id="loginCancel">fuck up</button>
+    </div>
+
+    <p id="loginError" class="error"></p>
+  </div>
+</div>
+
+
+<!-- ================= APP SCRIPT ================= -->
+<script src="app.js"></script>
+
+
+<script>
+// ===============================
+// TYPEWRITER PER HURUF
+// ===============================
+function typeWriter(element, text, speed = 40) {
+  return new Promise(resolve => {
+    let i = 0;
+    function typing() {
+      if (i < text.length) {
+        element.textContent += text[i];
+        i++;
+        setTimeout(typing, speed);
+      } else {
+        resolve();
+      }
+    }
+    typing();
+  });
+}
+
+// ===============================
+// TYPE PER-KATA
+// ===============================
+async function typeWordByWord(element, words, styles) {
+  for (let i = 0; i < words.length; i++) {
+    const span = document.createElement("span");
+    span.style.display = "inline-block";
+    if (styles[i].size) span.style.fontSize = styles[i].size;
+    element.appendChild(span);
+    await typeWriter(span, words[i], styles[i].speed);
+    element.innerHTML += " ";
+  }
+}
+
+// ===============================
+// MAIN INTRO — TEXT-ONLY BOUNCE, CEPAT HILANG BACKGROUND
+// ===============================
+async function startIntro() {
+  const intro   = document.getElementById("introScreen");
+  const bg      = document.getElementById("introBg");
+  const mainTxt = document.getElementById("introText");
+  const subTxt  = document.getElementById("introSub");
+
+  // 1) Ketik MAIN TEXT
+  await typeWordByWord(
+    mainTxt,
+    [
+      "STAY AS LONG AS YOU LIKE",
+      "If the world feels heavy, you'll fit right in. If it doesn't, just wait"
+    ],
+    [
+      { size: "5rem", speed: 28 },
+      { size: "2rem", speed: 24 }
+    ]
+  );
+
+  // 2) Ketik SUB TEXT
+  subTxt.style.opacity = 1;
+  subTxt.style.transform = "translateY(0)";
+  await typeWordByWord(
+    subTxt,
+    ["Here's a quiet spot in a loud world. Don't worry, we're confused too."],
+    [{ size: "1rem", speed: 24 }]
+  );
+
+  // 3) FADE BACKGROUND CEPAT (0.1s)
+  bg.style.opacity = "0";
+
+  // 4) Force reflow & trigger bounce teks
+  mainTxt.getBoundingClientRect();
+  subTxt.getBoundingClientRect();
+  requestAnimationFrame(() => {
+    mainTxt.classList.add("intro-impact");
+    subTxt.classList.add("intro-impact");
+  });
+
+  // 5) Tunggu animasi teks selesai, baru sembunyikan container
+  const CSS_DURATION = 800;
+  await new Promise(r => setTimeout(r, CSS_DURATION));
+
+  intro.style.pointerEvents = "none";
+  intro.style.visibility = "hidden";
+
+  document.body.classList.add("main-visible");
+}
+
+// START saat page load
+window.addEventListener("load", startIntro);
+</script>
+
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+// Sekarang bisa gunakan supabase langsung
+const supabaseUrl = 'https://exnzopxpseoztfhrtrxj.supabase.co'
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4bnpvcHhwc2VvenRmaHJ0cnhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0MzgyNzIsImV4cCI6MjA4MTAxNDI3Mn0.x6oP9AfSFd0LuaQxCHmBLzcD23CGO8BA0iMkubtkG24'
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey)
+
+
+const adminToggle = document.getElementById("adminToggle");
+const loginModal = document.getElementById("loginModal");
+const loginButton = document.getElementById("loginButton");
+const loginCancel = document.getElementById("loginCancel");
+const emailInput = document.getElementById("emailInput");
+const passwordInput = document.getElementById("passwordInput");
+const loginError = document.getElementById("loginError");
+
+adminToggle.addEventListener("click", async () => {
+  const { data: { user }, error } = await supabase.auth.getUser();
+  
+  if (user) {
+    await supabase.auth.signOut();
+    alert("🚪 Logged out — meaningless existence resumes.");
+  } else {
+    emailInput.value = "";
+    passwordInput.value = "";
+    loginError.textContent = "";
+    loginModal.style.display = "flex";
+  }
+});
+
+loginButton.addEventListener("click", async () => {
+  try {
+    const { error } = await supabase.auth.signInWithPassword({
+      email: emailInput.value.trim(),
+      password: passwordInput.value.trim()
+    });
+    
+    if (error) {
+      throw error;
+    }
+    
+    loginModal.style.display = "none";
+    alert("✅ Welcome, insider.");
+    document.body.classList.add("fade-out");
+    setTimeout(() => (window.location.href = "brat.html"), 600);
+  } catch (error) {
+    loginError.textContent = "whoops — wrong entry";
+  }
+});
+
+loginCancel.addEventListener("click", () => {
+  loginModal.style.display = "none";
+  loginError.textContent = "";
+});
+
+supabase.auth.onAuthStateChange((event, session) => {
+  const logged = session !== null;
+  localStorage.setItem("editorAuth", logged ? "true" : "false");
+  adminToggle.textContent = logged ? "logout" : "insider";
+  document.body.classList.toggle("logged-in", logged);
+});
+
+
+
+document.querySelectorAll(".menu-btn").forEach((btn) => {
+  btn.addEventListener("click", (e) => {
+    e.preventDefault(); // Mencegah navigasi default segera
+    const targetUrl = btn.dataset.target;
+    
+    // 1. Tambahkan class slide-left-out ke body
+    document.body.classList.add("slide-left-out");
+    
+    // 2. Tunggu hingga animasi selesai (sesuaikan dengan durasi CSS: 0.6s)
+    setTimeout(() => {
+      // 3. Pindah ke halaman tujuan
+      window.location.href = targetUrl;
+    }, 600); // 600ms = durasi transisi CSS
+  });
+});
+</script>
+
+
+
+<!-- ================= LOCAL LOGIN STATE ================= -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const logged = localStorage.getItem("editorAuth") === "true";
+  document.getElementById("adminToggle").textContent = logged ? "logout" : "insider";
+  document.body.classList.toggle("logged-in", logged);
+});
+</script>
+
+</body>
+</html>

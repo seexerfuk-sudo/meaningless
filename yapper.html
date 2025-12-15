@@ -1,0 +1,819 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>YAPPER — EW</title>
+    <link rel="stylesheet" href="style.css" />
+
+    <style>
+    /* ======================= 1. ROOT & COLORS ======================= */
+    :root {
+        /* Dimensi Layout */
+        --sidebar-w: 220px;
+        --gutter: 40px;
+        --header-h: 170px;
+        --footer-h: 40px;
+
+        /* Glassmorphism Effect & Colors */
+        --glass-bg-primary: rgba(255, 255, 255, 0.051); 
+        --glass-bg: rgba(255, 255, 255, 0.033); 
+        --glass-border: rgba(255, 255, 255, 0.115);
+        --glass-shadow-primary: rgba(0, 0, 0, 0.3); 
+        --text-color-light: #f1f1f1;
+        --toolbar-gap: 10px;
+    }
+
+    /* ======================= 2. BASE & LAYOUT ======================= */
+    body.page-yapper {
+        position: relative; 
+        overflow-x: hidden;
+        min-height: 100vh;
+        color: #d6d6d6;
+        font-family: "Doto", sans-serif;
+        background: none; 
+    }
+
+    /* Background (spesifik untuk page-brat, dipertahankan) */
+    body.page-yapper::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-image: url('asset/yapperdeskop.png');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        z-index: -1;
+    }
+
+    /* Background mobile (page-brat) */
+    @media (max-width: 720px) {
+        body.page-yapper::before {
+            background-image: url('asset/yappermobile.png');
+            background-size: cover;
+            background-position: center top;
+            z-index: -1;
+        }
+    }
+
+    .content-wrap {
+        position: absolute;
+        top: var(--header-h);
+        left: 385px; 
+        right: 180px; 
+        bottom: 40px;
+        transition: left .28s ease;
+        overflow: hidden;
+        padding: 18px;
+    }
+
+    .yapper-editor {
+        width: 100%;
+        height: 100%;
+        background: var(--glass-bg-primary);
+        backdrop-filter: blur(20px) saturate(150%);
+        -webkit-backdrop-filter: blur(20px) saturate(150%);
+        border-radius: 18px;
+        border: 1px solid var(--glass-border);
+        padding: 26px;
+        overflow-y: auto;
+        box-shadow: 0 8px 32px 0 var(--glass-shadow-primary), inset 0 0 0 1px rgba(255,255,255,0.1);
+        color: #dcdcdc;
+        line-height: 1.6;
+    }
+
+    /* ======================= 3. SIDEBAR (ASIDE) ======================= */
+    .yapper-sidebar {
+        position: absolute;
+        top: calc(var(--header-h) + 16px);
+        left: 180px; 
+        width: var(--sidebar-w);
+        bottom: 58px;
+        padding: 18px;
+        border-radius: 18px;
+        background: var(--glass-bg);
+        backdrop-filter: blur(25px) saturate(180%);
+        -webkit-backdrop-filter: blur(25px) saturate(180%);
+        border: 1px solid var(--glass-border);
+        box-shadow: 0 8px 32px 0 var(--glass-shadow-primary), inset 0 0 0 1px var(--glass-border);
+        color: var(--text-color-light);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        z-index: 20;
+        transition: width 0.3s ease, left 0.3s ease;
+    }
+
+    .yapper-sidebar .ys-pages {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding-right: 6px;
+    }
+
+    /* Scrollbar Styling untuk .ys-pages */
+    .yapper-sidebar .ys-pages::-webkit-scrollbar { width: 8px; }
+    .yapper-sidebar .ys-pages::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.068);
+        border-radius: 6px;
+    }
+
+    .ys-page-btn {
+        background: transparent;
+        color: var(--text-color-light);
+        padding: 10px 14px;
+        border-radius: 8px;
+        text-align: left;
+        border: none;
+        cursor: pointer;
+        box-shadow: none;
+        font-size: 15px;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .ys-page-btn:hover { background: rgba(255, 255, 255, 0.05); }
+
+    .ys-page-btn.active {
+        background: rgba(255, 255, 255, 0.15);
+        color: #fff;
+        border: 1px solid var(--glass-border);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .ys-controls { 
+        display:flex; 
+        gap:var(--toolbar-gap); 
+        align-items:center; 
+        justify-content:flex-start; 
+    }
+
+    /* Kontrol Admin */
+    .ys-add, .ys-delete { display: none; } 
+    body.logged-in .ys-add, body.logged-in .ys-delete { display: inline-flex; }
+
+    /* =====================================================
+        4. FIXED FLOATING TOOLBAR (SMOOTH)
+    ===================================================== */
+    .editor-toolbar-fixed {
+        position: fixed;
+        top: calc(var(--header-h) + -30px); 
+        left: 50%;
+        transform: translateX(-50%);
+        width: fit-content;
+
+        background: rgba(20,20,20,0.92);
+        border: 1px solid rgba(255,255,255,0.10);
+        padding: 10px 14px;
+        border-radius: 12px;
+        display: none; 
+        gap: var(--toolbar-gap);
+        align-items: center;
+        z-index: 9999;
+        backdrop-filter: blur(6px);
+        transition: box-shadow .18s ease, transform .18s ease, opacity .18s ease;
+    }
+    
+    body.logged-in .editor-toolbar-fixed { 
+        display: flex;
+    }
+
+    /* Styling Kontrol Toolbar */
+    .editor-toolbar-fixed select,
+    .editor-toolbar-fixed button,
+    .editor-toolbar-fixed input[type="color"] {
+        background: rgba(255,255,255,0.04);
+        color: #e8e8e8;
+        border: 1px solid rgba(255,255,255,0.08);
+        padding: 6px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 12px;
+        white-space: nowrap;
+        /* Reset default styling untuk select/button */
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+    }
+
+    .editor-toolbar-fixed button:hover {
+        background: rgba(255,255,255,0.10);
+    }
+    
+    .editor-toolbar-fixed select { min-width: 88px; }
+    .editor-toolbar-fixed input[type="color"] { padding: 6px; width: 40px; height: 32px; /* Disesuaikan agar setara dengan button */ }
+
+
+    /* ======================= 5. ADMIN TOGGLE (CENTER BOTTOM) ======================= */
+    /* Dihapus karena sudah di style.css */
+
+
+    /* ======================= 6. MOBILE RESPONSIVE (Max-width 820px) ======================= */
+@media (max-width:720px) {
+        /* Sidebar Collapsed */
+        .yapper-sidebar {
+            width: 35px; 
+            left: 20px;
+            top: 240px;
+            bottom: 75px;
+            padding: 10px; 
+            border-radius: 25px;
+            overflow: hidden;
+            flex-direction: column; /* Jamin orientasi vertikal */
+        }
+
+        /* Sembunyikan elemen sidebar saat tidak expanded */
+        .yapper-sidebar:not(.expanded) .ys-pages,
+        .yapper-sidebar:not(.expanded) .ys-controls,
+        .yapper-sidebar:not(.expanded) .ys-head {
+            display: none;
+        }
+
+/* Tampilkan deskripsi saat collapsed */
+.yapper-sidebar:not(.expanded) .desc {
+    display: block;
+    writing-mode: vertical-rl;      /* Bikin teks vertikal */
+    transform: rotate(180deg);      /* Bikin arah bacanya benar */
+    font-size: 16px;
+    color: var(--text-color-light);
+    position: absolute;
+    bottom: 45%;
+    left: 25%;
+    text-align: center;
+    font-family: "Quantico", sans-serif;
+}
+
+        /* Sidebar Expanded */
+        .yapper-sidebar.expanded {
+            width: 220px;
+            padding: 18px; 
+        }
+
+        /* Tampilkan kembali elemen sidebar saat expanded */
+        .yapper-sidebar.expanded .ys-pages,
+        .yapper-sidebar.expanded .ys-controls,
+        .yapper-sidebar.expanded .ys-head {
+            display: flex; 
+        }
+        
+        .yapper-sidebar.expanded .desc {
+            display: none; /* Sembunyikan desc saat expanded */
+        }
+
+        /* Content Area Adjustment */
+        .content-wrap {
+            left: 50px; 
+            right: 30px;
+            top: calc(var(--header-h) + 60px);
+            bottom: 65px;
+            padding: 10px; /* Padding sedikit disesuaikan untuk mobile */
+        }
+        
+        /* Mobile Toolbar Adjustments (Horizontal Scroll) */
+        .editor-toolbar-fixed {
+            position: fixed;
+            top: calc(var(--header-h) + 15px); 
+            left: 0;
+            right: 0;
+            transform: none;
+            width: 100%;
+            padding: 8px 12px;
+            border-radius: 0;
+            background: rgba(18,18,18,0.92);
+            overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+            justify-content: flex-start; /* Untuk memastikan scroll dari kiri */
+        }
+        
+        /* Scrollbar Styling untuk Mobile Toolbar */
+        .editor-toolbar-fixed::-webkit-scrollbar { height: 6px; }
+        .editor-toolbar-fixed::-webkit-scrollbar-thumb { 
+            background: rgba(255,255,255,0.12); 
+            border-radius: 6px; 
+        }
+
+        .editor-toolbar-fixed select,
+        .editor-toolbar-fixed button,
+        .editor-toolbar-fixed input[type="color"] {
+            display: inline-block;
+            margin-right: var(--toolbar-gap); /* Gunakan var untuk konsistensi */
+        }
+    }
+</style>
+</head>
+<body class="page-yapper">
+
+<header class="site-header small">
+    <h1 class="yapper">YAPPER</h1>
+    <nav class="main-nav">
+        <a href="index.html" class="menu-btn">HOME</a> 
+        <a href="art.html" class="menu-btn">ART</a>
+        <a href="brat.html" class="menu-btn">BRAT</a>
+    </nav>
+</header>
+
+<aside class="yapper-sidebar" id="yapperSidebar">
+    <section class="ys-head">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+                <div style="font-weight:500">Professional</div>
+                <div style="font-weight:500">Yapper Notes</div>
+            </div>
+        </div>
+    </section>
+    <p class="desc">click to find me</p>
+    
+    <nav class="ys-pages" id="pageList" aria-label="Yapper Notes Pages"></nav>
+
+    <div class="ys-controls">
+        <button id="addPageBtn" class="ys-add">+ Add New</button>
+        <button id="deletePageBtn" class="ys-delete" title="Delete current">Delete</button>
+    </div>
+</aside>
+
+<section class="editor-toolbar-fixed" id="toolbar-yapper" aria-label="Text Editor Toolbar">
+    <select id="fontSelect-yapper" aria-label="Font Family">
+        <option value="monospace">Monospace</option>
+        <option value="serif">Serif</option>
+        <option value="sans-serif">Sans</option> 
+        <option value="Doto">Doto</option> 
+        <option value="Quantico">Quantico</option>
+    </select>
+    <select id="sizeSelect-yapper" aria-label="Font Size">
+        <option value="14">14px</option>
+        <option value="16" selected>16px</option>
+        <option value="20">20px</option>
+        <option value="24">24px</option>
+    </select>
+    <button data-cmd="bold" aria-label="Bold"><b>B</b></button>
+    <button data-cmd="italic" aria-label="Italic"><i>I</i></button>
+    <button data-cmd="underline" aria-label="Underline"><u>U</u></button>
+    <input type="color" id="color-yapper" value="#4FC3F7" aria-label="Text Color"/>
+    <button data-cmd="justifyLeft" aria-label="Align Left">L</button>
+    <button data-cmd="justifyCenter" aria-label="Align Center">C</button>
+    <button data-cmd="justifyRight" aria-label="Align Right">R</button>
+    <button data-cmd="outdent" aria-label="Decrease Indent">&lt;</button>
+    <button data-cmd="indent" aria-label="Increase Indent">&gt;</button>
+    <button id="addImageyapper">Add Image</button>
+    <button id="saveyapper">Save</button>
+</section>
+
+<main class="content-wrap" id="yapperContent" tabindex="0">
+    <article id="yapperEditor" class="yapper-editor editable" contenteditable="false" aria-label="Yapper Note Editor"></article>
+    <input type="file" id="imageInputyapper" accept="image/*" style="display:none" aria-hidden="true" />
+</main>
+
+
+<button id="adminToggle" class="admin-toggle" aria-live="polite">outsider</button>
+
+<script src="app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ==========================================================
+// 1. Supabase Configuration & Initialization
+// ==========================================================
+const supabaseUrl = 'https://exnzopxpseoztfhrtrxj.supabase.co'
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4bnpvcHhwc2VvenRmaHJ0cnhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0MzgyNzIsImV4cCI6MjA4MTAxNDI3Mn0.x6oP9AfSFd0LuaQxCHmBLzcD23CGO8BA0iMkubtkG24'
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey)
+
+// ==========================================================
+// 2. DOM Elements
+// ==========================================================
+const toolbar = document.getElementById("toolbar-yapper");
+const editor = document.getElementById("yapperEditor");
+const saveBtn = document.getElementById("saveyapper");
+const addImageBtn = document.getElementById("addImageyapper");
+const imageInput = document.getElementById("imageInputyapper");
+const adminToggle = document.getElementById("adminToggle");
+const pageListEl = document.getElementById("pageList");
+const addPageBtn = document.getElementById("addPageBtn");
+const deletePageBtn = document.getElementById("deletePageBtn");
+const sidebar = document.getElementById("yapperSidebar");
+
+// Input Kontrol Toolbar
+const fontSelect = document.getElementById("fontSelect-yapper");
+const sizeSelect = document.getElementById("sizeSelect-yapper");
+const colorInput = document.getElementById("color-yapper");
+
+// ==========================================================
+// 3. Pages State Management
+// ==========================================================
+let pages = JSON.parse(localStorage.getItem("yapperPages") || "[]");
+let activePageId = localStorage.getItem("yapperActive") || null;
+
+/** Menginisialisasi halaman default jika array pages kosong. */
+function initializeDefaultPage() {
+    if (!pages.length) {
+        const id = Date.now().toString();
+        pages = [{ id, title: "Page 1", content: "" }];
+        activePageId = id;
+    }
+    savePages();
+}
+
+/** Menyimpan pages dan active ID ke localStorage. */
+function savePages() {
+    localStorage.setItem("yapperPages", JSON.stringify(pages));
+    localStorage.setItem("yapperActive", activePageId);
+}
+
+/** Mencari objek halaman aktif. */
+function getActivePage() {
+    return pages.find(p => p.id === activePageId);
+}
+
+/** Merender daftar halaman di sidebar. */
+function renderPages() {
+    pageListEl.innerHTML = "";
+    const isLoggedIn = document.body.classList.contains("logged-in");
+    
+    pages.forEach(p => {
+        const btn = document.createElement("button");
+        btn.className = "ys-page-btn";
+        if (p.id === activePageId) btn.classList.add("active");
+        btn.dataset.id = p.id;
+        btn.textContent = p.title;
+
+        // Aksi: Load Content
+        btn.addEventListener("click", () => { 
+            if(activePageId !== p.id) {
+                activePageId = p.id; 
+                savePages(); 
+                loadActiveContent(); 
+                renderPages(); 
+            }
+        });
+        
+        // Aksi: Rename (Admin only)
+        if(isLoggedIn) {
+            let pressTimer;
+            const renameHandler = () => {
+                clearTimeout(pressTimer); // Pastikan timer berhenti jika dieksekusi
+                const newTitle = prompt("Rename page:", p.title);
+                if(newTitle && newTitle.trim()){
+                    p.title = newTitle.trim();
+                    savePages();
+                    renderPages();
+                }
+            };
+
+            // Event untuk Long Press (Mobile)
+            btn.addEventListener("mousedown", () => { pressTimer = setTimeout(renameHandler, 500); });
+            btn.addEventListener("mouseup", () => clearTimeout(pressTimer));
+            btn.addEventListener("mouseleave", () => clearTimeout(pressTimer));
+            
+            // Event untuk Double Click (Desktop)
+            btn.addEventListener("dblclick", renameHandler);
+        }
+
+        pageListEl.appendChild(btn);
+    });
+}
+
+/** Memuat konten halaman aktif ke editor. */
+function loadActiveContent() {
+    const page = getActivePage();
+    editor.innerHTML = page ? page.content : "";
+}
+
+/** Menambahkan halaman baru. (Admin only) */
+function addPage() {
+    if (!document.body.classList.contains("logged-in")) {
+        alert("⚠️ Only admin can add pages!");
+        return;
+    }
+    const id = Date.now().toString();
+    const newPage = { id, title: `Page ${pages.length + 1}`, content: "" };
+    pages.push(newPage);
+    activePageId = id;
+    savePages(); 
+    renderPages(); 
+    loadActiveContent();
+}
+
+/** Menghapus halaman aktif. (Admin only) */
+function deleteCurrentPage() {
+    if (!document.body.classList.contains("logged-in")) {
+        alert("⚠️ Only admin can delete pages!");
+        return;
+    }
+    if (!activePageId || pages.length === 1) {
+        alert("Cannot delete the last page.");
+        return;
+    }
+    if (!confirm(`Are you sure you want to delete "${getActivePage().title}"?`)) return;
+    
+    const deletedIndex = pages.findIndex(p => p.id === activePageId);
+
+    pages = pages.filter(p => p.id !== activePageId);
+    
+    // Atur halaman aktif baru
+    activePageId = pages[Math.min(deletedIndex, pages.length - 1)]?.id || null;
+    
+    savePages(); 
+    renderPages(); 
+    loadActiveContent();
+}
+
+// ==========================================================
+// 4. Event Listeners
+// ==========================================================
+
+// --- Editor & Content Management ---
+/** Menyimpan konten editor saat ini ke objek halaman aktif di localStorage. */
+editor.addEventListener("input", () => {
+    const page = getActivePage();
+    if (page) { 
+        page.content = editor.innerHTML; 
+        savePages(); 
+    }
+});
+
+addPageBtn.addEventListener("click", addPage);
+deletePageBtn.addEventListener("click", deleteCurrentPage);
+
+// --- Toolbar Commands (execCommand) ---
+toolbar.addEventListener("click", (e) => { 
+    if (!editor.isContentEditable) return;
+
+    const btn = e.target.closest("button"); 
+    if (btn) {
+        const cmd = btn.dataset.cmd; 
+        if (cmd) {
+            editor.focus();
+            document.execCommand(cmd, false, null);
+        }
+    }
+});
+
+fontSelect.addEventListener("change", e => { 
+    if (!editor.isContentEditable) return;
+    editor.focus(); 
+    document.execCommand("fontName", false, e.target.value); 
+});
+
+sizeSelect.addEventListener("change", e => {
+    if (!editor.isContentEditable) return;
+    // execCommand "fontSize" menggunakan 1-7, perlu trik untuk menggunakan px
+    const px = e.target.value + "px";
+    editor.focus();
+    document.execCommand("fontSize", false, "7"); // Terapkan size 7 (max)
+    editor.querySelectorAll("font[size='7']").forEach(el => {
+        el.removeAttribute("size"); 
+        el.style.fontSize = px; // Ubah ke ukuran px yang diinginkan
+    });
+});
+
+colorInput.addEventListener("input", e => { 
+    if (!editor.isContentEditable) return;
+    editor.focus(); 
+    document.execCommand("foreColor", false, e.target.value); 
+});
+
+// --- Image Upload ---
+addImageBtn.addEventListener("click", () => {
+    if (!editor.isContentEditable) {
+        alert("⚠️ You must be logged in to add images.");
+        return;
+    }
+    imageInput.click();
+});
+
+imageInput.addEventListener("change", async (ev) => {
+    if (!editor.isContentEditable) return;
+
+    const file = ev.target.files[0]; 
+    if (!file) return;
+
+    try {
+        // Upload ke Supabase Storage
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+        
+        const { data, error } = await supabase.storage
+            .from('images')
+            .upload(fileName, file);
+        
+        if (error) throw error;
+        
+        // Dapatkan URL publik
+        const { data: { publicUrl } } = supabase.storage
+            .from('images')
+            .getPublicUrl(fileName);
+        
+        editor.focus();
+        document.execCommand("insertImage", false, publicUrl);
+        
+        // Simpan konten segera setelah penyisipan gambar
+        const page = getActivePage(); 
+        if (page) {
+            page.content = editor.innerHTML; 
+            savePages();
+        }
+    } catch (error) {
+        console.error('Image upload error:', error);
+        alert('❌ Failed to upload image: ' + error.message);
+    } finally {
+        ev.target.value = null;
+    }
+});
+
+// --- Supabase Save ---
+saveBtn.addEventListener("click", async () => {
+    if (!document.body.classList.contains("logged-in")) {
+        alert("⚠️ Only admin can save content to Supabase!");
+        return;
+    }
+    
+    // Pastikan konten editor aktif sudah tersimpan ke array pages
+    const page = getActivePage();
+    if (page) { page.content = editor.innerHTML; }
+
+    try { 
+        // Simpan ke Supabase
+        const { data: existing } = await supabase
+            .from('content')
+            .select('id')
+            .eq('page', 'yapper')
+            .single();
+        
+        let result;
+        if (existing) {
+            // Update existing
+            result = await supabase
+                .from('content')
+                .update({ yapper_content: pages, updated_at: new Date().toISOString() })
+                .eq('page', 'yapper');
+        } else {
+            // Insert new
+            result = await supabase
+                .from('content')
+                .insert([{ page: 'yapper', yapper_content: pages }]);
+        }
+        
+        if (result.error) throw result.error;
+        alert("✅ All Yapper Notes saved to Supabase!"); 
+    } catch (err) { 
+        alert("❌ Save failed: " + err.message);
+    }
+});
+
+// ==========================================================
+// 5. Supabase Realtime Load
+// ==========================================================
+// Load initial data from Supabase
+async function loadYapperData() {
+    try {
+        const { data, error } = await supabase
+            .from('content')
+            .select('yapper_content')
+            .eq('page', 'yapper')
+            .single();
+        
+        if (error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows
+        
+        if (data && data.yapper_content) {
+            const remotePages = data.yapper_content;
+            
+            if (remotePages.length > 0) {
+                pages = remotePages;
+                
+                // Periksa validitas activePageId setelah pembaruan data
+                if (!pages.find(p => p.id === activePageId)) {
+                    activePageId = pages[0].id;
+                }
+                
+                savePages(); 
+                renderPages(); 
+                loadActiveContent();
+                console.log("Yapper Notes updated from Supabase.");
+            }
+        }
+    } catch (error) {
+        console.error('Error loading Yapper data:', error);
+    }
+}
+
+// Subscribe to real-time updates
+supabase
+    .channel('yapper-content-changes')
+    .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'content',
+        filter: 'page=eq.yapper'
+    }, async (payload) => {
+        if (payload.new && payload.new.yapper_content) {
+            const remotePages = payload.new.yapper_content;
+            
+            if (remotePages.length > 0) {
+                pages = remotePages;
+                
+                if (!pages.find(p => p.id === activePageId)) {
+                    activePageId = pages[0].id;
+                }
+                
+                savePages(); 
+                renderPages(); 
+                loadActiveContent();
+                console.log("Yapper Notes updated from real-time.");
+            }
+        }
+    })
+    .subscribe();
+
+// Initial load
+loadYapperData();
+
+// ==========================================================
+// 6. Admin Authentication & UI Toggle
+// ==========================================================
+
+adminToggle.addEventListener("click", async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (user) { 
+        await supabase.auth.signOut(); 
+        alert("Signed out");
+        return; 
+    }
+    
+    alert("Please login on the HOME page.");
+    window.location.href = "index.html";
+});
+
+/** Menangani perubahan status login dan memperbarui UI/Editor. */
+supabase.auth.onAuthStateChange((event, session) => {
+    const isLoggedIn = !!session;
+    document.body.classList.toggle("logged-in", isLoggedIn); 
+    editor.contentEditable = isLoggedIn ? "true" : "false"; // AKTIFKAN/NON-AKTIFKAN EDITING
+    adminToggle.textContent = isLoggedIn ? "do it" : "outsider"; 
+    renderPages(); // Render ulang untuk menampilkan/menyembunyikan tombol admin di sidebar
+});
+
+// ==========================================================
+// 7. Mobile/Sidebar Toggle
+// ==========================================================
+
+// Inisiasi awal sidebar untuk mobile
+if (window.innerWidth <= 820) {
+    sidebar.classList.add("collapsed");
+}
+
+/** Mengatur ekspansi/kolaps sidebar saat diklik. */
+sidebar.addEventListener("click", (e) => { 
+    // Toggle hanya jika yang diklik BUKAN tombol di dalamnya
+    if (!e.target.closest('button')) {
+        sidebar.classList.toggle("expanded"); 
+    }
+});
+
+// Menutup sidebar saat mengklik di luar (hanya berlaku di mobile)
+document.addEventListener("click", (e) => { 
+    const isMobile = window.innerWidth <= 820;
+    const isExpanded = sidebar.classList.contains("expanded");
+
+    if (isMobile && isExpanded && !sidebar.contains(e.target) && !e.target.closest('header')) {
+        sidebar.classList.remove("expanded"); 
+    }
+});
+
+// ==========================================================
+// 8. Initialization
+// ==========================================================
+initializeDefaultPage();
+renderPages(); 
+loadActiveContent();
+
+// Expose state for debugging (optional, dipertahankan)
+window.__Yapper = { 
+    pages, 
+    renderPages, 
+    addPage, 
+    deleteCurrentPage, 
+    savePages, 
+    getActivePageId: () => activePageId 
+};
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    // Tambahkan class untuk memicu animasi masuk
+    document.body.classList.add("zoom-blur-pop");
+    
+    // Hapus class ini setelah animasi selesai agar tidak mengganggu navigasi internal
+    setTimeout(() => {
+        document.body.classList.remove("zoom-blur-pop");
+    }, 600); // Sinkronkan dengan durasi CSS
+});
+</script>
+</body>
+</html>
