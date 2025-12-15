@@ -352,54 +352,60 @@ async function testSupabase() {
 }
 
 // ==========================================================
-// LOAD FROM SUPABASE (FIXED VERSION)
+// LOAD FROM SUPABASE - SIMPLIFIED
 // ==========================================================
 async function loadBratContent() {
   console.log('Loading BRAT content...');
   
   try {
+    // Coba ambil data dengan kolom yang mungkin ada
     const { data, error } = await supabase
       .from('content')
       .select('*')
       .eq('page', 'brat')
-      .single();
+      .maybeSingle(); // Use maybeSingle untuk handle no data
     
     console.log('Load response:', { data, error });
     
-    if (error) {
-      if (error.code === 'PGRST116') {
-        console.log('No BRAT row found, will create when first saved');
-        editor.innerHTML = '<p>Mulai menulis di sini...</p>';
-        return;
-      }
-      throw error;
+    if (error && error.code !== 'PGRST116') {
+      console.warn('Load warning:', error);
     }
     
+    // Cek semua kemungkinan nama kolom
     let content = '';
-    if (data.brat_content) {
-      content = data.brat_content;
-    } else if (data.content) {
-      content = data.content;
-    } else if (data.data) {
-      content = data.data;
+    if (data) {
+      // Coba urutan prioritas
+      if (data.brat_content !== undefined && data.brat_content !== null) {
+        content = data.brat_content;
+        console.log('Found in brat_content column');
+      } else if (data.data !== undefined && data.data !== null) {
+        content = data.data;
+        console.log('Found in data column');
+      } else if (data.text !== undefined && data.text !== null) {
+        content = data.text;
+        console.log('Found in text column');
+      } else if (data.html !== undefined && data.html !== null) {
+        content = data.html;
+        console.log('Found in html column');
+      }
     }
-    
-    console.log('Content to load:', content.substring(0, 50) + '...');
     
     if (content) {
       editor.innerHTML = content;
+      console.log('Content loaded successfully');
     } else {
-      editor.innerHTML = '<p>Mulai menulis di sini...</p>';
+      editor.innerHTML = '<p style="color:#888;font-style:italic;">Mulai menulis di sini...</p>';
+      console.log('No content found, using default');
     }
     
   } catch (error) {
     console.error('Error loading BRAT content:', error);
-    editor.innerHTML = '<p>Error loading content. Please refresh.</p>';
+    editor.innerHTML = '<p style="color:#ff6b6b;">Error loading content. Please refresh.</p>';
   }
 }
 
 // ==========================================================
-// SAVE TO SUPABASE (FIXED VERSION - HANDLES UNIQUE CONSTRAINT)
+// SAVE TO SUPABASE - SIMPLIFIED (HANDLE COLUMN ISSUES)
 // ==========================================================
 async function saveBratContent() {
   console.log('Attempting to save BRAT content...');
@@ -412,61 +418,119 @@ async function saveBratContent() {
   const html = editor.innerHTML.trim();
   console.log('Content to save length:', html.length);
   
-  if (!html) {
+  if (!html || html === '<p><br></p>') {
     alert("⚠️ Content is empty!");
     return;
   }
   
   try {
-    // Cek dulu apakah data brat sudah ada
+    // Cek struktur tabel dulu
+    const { data: tableInfo, error: tableError } = await supabase
+      .from('content')
+      .select('id, page')
+      .limit(1);
+    
+    if (tableError) {
+      console.error('Table error:', tableError);
+      alert("❌ Cannot access database table. Check table structure.");
+      return;
+    }
+    
+    console.log('Table structure OK');
+    
+    // Cek apakah data sudah ada
     const { data: existingData, error: checkError } = await supabase
       .from('content')
       .select('id')
       .eq('page', 'brat')
-      .maybeSingle(); // Use maybeSingle instead of single
+      .maybeSingle();
     
-    console.log('Existing data check:', { existingData, checkError });
-    
-    if (checkError && checkError.code !== 'PGRST116') {
-      throw checkError;
-    }
+    console.log('Existing data:', existingData);
     
     const now = new Date().toISOString();
     
-    if (existingData) {
-      // UPDATE existing record
-      console.log('Updating existing BRAT record...');
+    // Coba UPDATE dulu (jika ada)
+    if (existingData && existingData.id) {
+      console.log('Attempting UPDATE...');
+      
+      // Coba beberapa kemungkinan kolom
+      const updateData = {
+        updated_at: now
+      };
+      
+      // Coba set berdasarkan kemungkinan kolom
+      updateData.brat_content = html;
+      // JANGAN masukkan kolom 'content' jika tidak ada
+      
       const { data: updateResult, error: updateError } = await supabase
         .from('content')
-        .update({ 
-          brat_content: html,
-          content: html,
-          updated_at: now
-        })
-        .eq('page', 'brat');
+        .update(updateData)
+        .eq('id', existingData.id);
       
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Update error:', updateError);
+        
+        // Coba tanpa brat_content (mungkin kolomnya berbeda)
+        const { data: retryResult, error: retryError } = await supabase
+          .from('content')
+          .update({ 
+            updated_at: now,
+            data: html // Coba kolom 'data'
+          })
+          .eq('id', existingData.id);
+        
+        if (retryError) {
+          throw retryError;
+        }
+        
+        console.log('Update successful with "data" column');
+        alert("✅ Content saved successfully!");
+        return;
+      }
       
-      alert("✅ BRAT content updated successfully!");
-      console.log('Update successful:', updateResult);
+      console.log('Update successful with "brat_content" column');
+      alert("✅ Content updated successfully!");
+      
     } else {
-      // INSERT new record
-      console.log('Inserting new BRAT record...');
+      // INSERT baru
+      console.log('Attempting INSERT...');
+      
+      // Coba INSERT dengan struktur minimal
       const { data: insertResult, error: insertError } = await supabase
         .from('content')
         .insert([{ 
-          page: 'brat', 
+          page: 'brat',
           brat_content: html,
-          content: html,
           created_at: now,
           updated_at: now
         }])
         .select();
       
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error('Insert error:', insertError);
+        
+        // Coba dengan kolom 'data' jika 'brat_content' error
+        const { data: retryResult, error: retryError } = await supabase
+          .from('content')
+          .insert([{ 
+            page: 'brat',
+            data: html,
+            created_at: now,
+            updated_at: now
+          }])
+          .select();
+        
+        if (retryError) {
+          throw retryError;
+        }
+        
+        console.log('Insert successful with "data" column');
+        alert("✅ Content saved successfully! (New record with 'data' column)");
+        return;
+      }
       
-      alert("✅ BRAT content saved successfully! (New record created)");
-      console.log('Insert successful:', insertResult);
+      console.log('Insert successful with "brat_content" column');
+      alert("✅ Content saved successfully! (New record)");
     }
     
   } catch (error) {
@@ -474,7 +538,9 @@ async function saveBratContent() {
     
     // User-friendly error messages
     if (error.code === '23505') {
-      alert("❌ Error: BRAT page already exists. Try refreshing and saving again.");
+      alert("❌ Duplicate entry. Please refresh the page and try again.");
+    } else if (error.code === 'PGRST204') {
+      alert("❌ Database column mismatch. Please check your Supabase table structure.");
     } else {
       alert("❌ Save failed: " + (error.message || 'Unknown error'));
     }
