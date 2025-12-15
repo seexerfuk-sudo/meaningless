@@ -193,7 +193,68 @@ body.page-brat::before {
 .editor-toolbar-fixed select { min-width: 88px; }
 .editor-toolbar-fixed input[type="color"] { padding: 6px; width: 40px; }
 
+/* =====================================================
+   EXTRA: READ-ONLY PROTECTION STYLES
+===================================================== */
+.brat-editor-card.read-only {
+  /* Completely disable interactions */
+  pointer-events: none !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  
+  /* Visual indicator */
+  position: relative;
+  cursor: not-allowed !important;
+}
 
+.brat-editor-card.read-only::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: transparent;
+  z-index: 1;
+  cursor: not-allowed !important;
+}
+
+/* Show login prompt on hover */
+.brat-editor-card.read-only:hover::before {
+  content: "Login as admin to edit";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-family: "Quantico", sans-serif;
+  font-size: 14px;
+  z-index: 100;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+/* Disable all interactions with content */
+.brat-editor-card.read-only * {
+  pointer-events: none !important;
+  cursor: not-allowed !important;
+}
+
+/* Specifically disable images */
+.brat-editor-card.read-only img {
+  pointer-events: none !important;
+  -webkit-user-drag: none !important;
+  -khtml-user-drag: none !important;
+  -moz-user-drag: none !important;
+  -o-user-drag: none !important;
+  user-drag: none !important;
+}
 /* ADMIN TOGGLE: dihapus karena sudah ada di style.css */
 </style>
 </head>
@@ -251,22 +312,18 @@ body.page-brat::before {
 
 <button id="adminToggle" class="admin-toggle admin-toggle-center" aria-live="polite">outsider</button>
 
+// ==========================================================
+// COMPLETE FIXED SCRIPT SECTION
+// ==========================================================
 <script src="app.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// ==========================================================
-// DEBUG LOGS
-// ==========================================================
-console.log('=== BRAT PAGE LOADED ===');
-
 // ==========================================================
 // SUPABASE INITIALIZATION
 // ==========================================================
 const supabaseUrl = 'https://exnzopxpseoztfhrtrxj.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4bnpvcHhwc2VvenRmaHJ0cnhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0MzgyNzIsImV4cCI6MjA4MTAxNDI3Mn0.x6oP9AfSFd0LuaQxCHmBLzcD23CGO8BA0iMkubtkG24';
 const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-
-console.log('Supabase client created:', !!supabase);
 
 // ==========================================================
 // DOM ELEMENTS
@@ -278,257 +335,219 @@ const addImageBtn = document.getElementById("addImageBrat");
 const imageInput = document.getElementById("imageInputBrat");
 const adminToggle = document.getElementById("adminToggle");
 
-console.log('DOM elements:', {
-  toolbar: !!toolbar,
-  editor: !!editor,
-  saveBtn: !!saveBtn,
-  adminToggle: !!adminToggle
-});
+// ==========================================================
+// PROTECTION FUNCTIONS
+// ==========================================================
+function enableEditing() {
+  // Enable for admin
+  editor.contentEditable = "true";
+  editor.classList.add("editable");
+  editor.classList.remove("read-only");
+  editor.style.userSelect = "text";
+  editor.style.webkitUserSelect = "text";
+  editor.style.cursor = "text";
+  toolbar.style.display = "flex";
+  
+  // Re-enable event listeners
+  editor.onclick = null;
+  editor.onkeydown = null;
+  editor.oninput = null;
+}
 
-// ==========================================================
-// TEST SUPABASE CONNECTION
-// ==========================================================
-async function testSupabase() {
-  try {
-    console.log('Testing Supabase connection...');
-    
-    // Test 1: Check if table exists
-    const { data: tables, error: tablesError } = await supabase
-      .from('content')
-      .select('*')
-      .limit(1);
-    
-    if (tablesError) {
-      console.error('Table error:', tablesError);
-      alert('Database error: ' + tablesError.message);
-      return false;
-    }
-    
-    console.log('Table exists, rows:', tables?.length || 0);
-    
-    // Test 2: Check BRAT data
-    const { data: bratData, error: bratError } = await supabase
-      .from('content')
-      .select('*')
-      .eq('page', 'brat')
-      .single();
-    
-    if (bratError && bratError.code !== 'PGRST116') {
-      console.error('BRAT data error:', bratError);
-    } else {
-      console.log('BRAT data:', bratData);
-    }
-    
-    return true;
-  } catch (error) {
-    console.error('Connection test failed:', error);
+function disableEditing() {
+  // Disable for non-admin
+  editor.contentEditable = "false";
+  editor.classList.remove("editable");
+  editor.classList.add("read-only");
+  editor.style.userSelect = "none";
+  editor.style.webkitUserSelect = "none";
+  editor.style.cursor = "default";
+  toolbar.style.display = "none";
+  
+  // Prevent all editing attempts
+  editor.onclick = function(e) {
+    e.preventDefault();
+    e.stopPropagation();
     return false;
-  }
+  };
+  
+  editor.onkeydown = function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  };
+  
+  editor.oninput = function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  };
+  
+  // Prevent drag-and-drop
+  editor.ondragstart = function(e) {
+    e.preventDefault();
+    return false;
+  };
+  
+  editor.ondrop = function(e) {
+    e.preventDefault();
+    return false;
+  };
 }
 
 // ==========================================================
-// LOAD FROM SUPABASE (FIXED VERSION)
+// LOAD FROM SUPABASE
 // ==========================================================
 async function loadBratContent() {
-  console.log('Loading BRAT content...');
-  
   try {
     const { data, error } = await supabase
       .from('content')
-      .select('*')
+      .select('brat_content')
       .eq('page', 'brat')
-      .single();
+      .maybeSingle();
     
-    console.log('Load response:', { data, error });
-    
-    if (error) {
-      // No rows found - create new
-      if (error.code === 'PGRST116') {
-        console.log('No BRAT row found, will create when first saved');
-        editor.innerHTML = '';
-        return;
-      }
-      throw error;
+    if (error && error.code !== 'PGRST116') {
+      console.error('Load error:', error);
+      return;
     }
     
-    // Try different column names
-    let content = '';
-    if (data.brat_content) {
-      content = data.brat_content;
-      console.log('Found in brat_content column');
-    } else if (data.content) {
-      content = data.content;
-      console.log('Found in content column');
-    } else if (data.data) {
-      content = data.data;
-      console.log('Found in data column');
-    }
-    
-    console.log('Content to load:', content.substring(0, 50) + '...');
-    
-    if (content && document.activeElement !== editor) {
-      editor.innerHTML = content;
+    if (data && data.brat_content) {
+      editor.innerHTML = data.brat_content;
     }
     
   } catch (error) {
     console.error('Error loading BRAT content:', error);
-    // Don't alert on load error - might be first time
   }
 }
 
 // ==========================================================
-// SAVE TO SUPABASE (FIXED VERSION)
+// SAVE TO SUPABASE (USING UPSERT)
 // ==========================================================
 async function saveBratContent() {
-  console.log('Attempting to save BRAT content...');
-  
-  if (!editor.isContentEditable) {
+  // Double check authentication
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
     alert("⚠️ You must be logged in to save.");
+    disableEditing(); // Force disable
     return;
   }
   
   const html = editor.innerHTML.trim();
-  console.log('Content to save length:', html.length);
   
-  if (!html) {
+  if (html === '') {
     alert("⚠️ Content is empty!");
     return;
   }
   
   try {
-    // First, try to update existing
-    const { data: updateResult, error: updateError } = await supabase
+    // Use upsert
+    const { error } = await supabase
       .from('content')
-      .update({ 
+      .upsert({ 
+        page: 'brat',
         brat_content: html,
-        content: html, // fallback column
-        updated_at: new Date().toISOString() 
-      })
-      .eq('page', 'brat');
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'page'
+      });
     
-    console.log('Update result:', { updateResult, updateError });
+    if (error) throw error;
     
-    // If update didn't affect any rows, try insert
-    if (updateError || !updateResult || updateResult.length === 0) {
-      console.log('Update failed or no rows affected, trying insert...');
-      
-      const { data: insertResult, error: insertError } = await supabase
-        .from('content')
-        .insert([{ 
-          page: 'brat', 
-          brat_content: html,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }])
-        .select();
-      
-      console.log('Insert result:', { insertResult, insertError });
-      
-      if (insertError) throw insertError;
-      
-      alert("✅ BRAT content saved to Supabase! (New record created)");
-    } else {
-      alert("✅ BRAT content saved to Supabase! (Existing record updated)");
-    }
-    
-    console.log('Save successful!');
+    alert("✅ BRAT content saved!");
     
   } catch (error) {
-    console.error('Save error details:', error);
-    alert("❌ Save failed: " + (error.message || 'Unknown error'));
+    console.error('Save error:', error);
+    alert("❌ Save failed: " + error.message);
   }
 }
 
 // ==========================================================
-// AUTH + SHOW TOOLBAR (FIXED)
+// AUTH MANAGEMENT
 // ==========================================================
-async function setupAuth() {
-  try {
-    // Check current auth state
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
-    if (userError) {
-      console.error('Auth error:', userError);
-      return;
-    }
-    
-    const isLoggedIn = !!user;
-    console.log('Auth state:', isLoggedIn ? 'LOGGED IN' : 'LOGGED OUT', user);
-    
-    document.body.classList.toggle("logged-in", isLoggedIn);
-    adminToggle.textContent = isLoggedIn ? "do it" : "outsider";
-    
-    if (isLoggedIn) {
-      toolbar.style.display = "flex";
-      editor.contentEditable = "true";
-      console.log('Editor enabled for editing');
-    } else {
-      toolbar.style.display = "none";
-      editor.contentEditable = "false";
-      console.log('Editor disabled (read-only)');
-    }
-    
-  } catch (error) {
-    console.error('Auth setup error:', error);
+async function checkAndApplyAuth() {
+  const { data: { user } } = await supabase.auth.getUser();
+  const isLoggedIn = !!user;
+  
+  document.body.classList.toggle("logged-in", isLoggedIn);
+  adminToggle.textContent = isLoggedIn ? "do it" : "outsider";
+  
+  if (isLoggedIn) {
+    enableEditing();
+  } else {
+    disableEditing();
   }
 }
 
-// Auth state change listener
+// Auth state listener
 supabase.auth.onAuthStateChange((event, session) => {
-  console.log('Auth state changed:', event, session);
-  setupAuth();
+  console.log('Auth changed:', event);
+  checkAndApplyAuth();
 });
 
 // ==========================================================
-// EVENT LISTENERS
+// EVENT LISTENERS (ADMIN ONLY)
 // ==========================================================
 
-// Save button
-if (saveBtn) {
-  saveBtn.addEventListener("click", saveBratContent);
-  console.log('Save button listener added');
-}
+// Save button - only works when logged in
+saveBtn.addEventListener("click", async (e) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    e.preventDefault();
+    alert("⚠️ Login required");
+    return;
+  }
+  saveBratContent();
+});
 
-// Toolbar commands
-if (toolbar) {
-  toolbar.addEventListener("click", (e) => {
-    if (!editor.isContentEditable) return;
-    
-    const btn = e.target.closest("button");
-    if (!btn) return;
-    
-    const cmd = btn.dataset.cmd;
-    if (cmd) {
-      editor.focus();
-      document.execCommand(cmd, false, null);
-      console.log('Toolbar command:', cmd);
+// Toolbar commands - only when editable
+toolbar.addEventListener("click", (e) => {
+  if (editor.contentEditable !== "true") {
+    e.preventDefault();
+    e.stopPropagation();
+    return;
+  }
+  
+  const btn = e.target.closest("button");
+  if (!btn) return;
+  
+  const cmd = btn.dataset.cmd;
+  if (cmd) {
+    editor.focus();
+    document.execCommand(cmd, false, null);
+    return;
+  }
+  
+  if (btn.id === "addImageBrat") {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      alert("⚠️ Login required");
       return;
     }
-    
-    if (btn.id === "addImageBrat") {
-      imageInput.click();
-      console.log('Add image clicked');
-      return;
-    }
-  });
-}
+    imageInput.click();
+    return;
+  }
+});
 
-// Font controls
-const fontSelect = document.getElementById("fontSelect-brat");
-const sizeSelect = document.getElementById("sizeSelect-brat");
-const colorInput = document.getElementById("color-brat");
-
-if (fontSelect) {
-  fontSelect.addEventListener("change", (e) => {
-    if (!editor.isContentEditable) return;
+// Font controls - protected
+document.getElementById("fontSelect-brat").addEventListener("change", async (e) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    e.preventDefault();
+    return;
+  }
+  if (editor.contentEditable === "true") {
     editor.focus();
     document.execCommand("fontName", false, e.target.value);
-  });
-}
+  }
+});
 
-if (sizeSelect) {
-  sizeSelect.addEventListener("change", (e) => {
-    if (!editor.isContentEditable) return;
+document.getElementById("sizeSelect-brat").addEventListener("change", async (e) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    e.preventDefault();
+    return;
+  }
+  if (editor.contentEditable === "true") {
     const px = e.target.value + "px";
     editor.focus();
     document.execCommand("fontSize", false, "7");
@@ -536,119 +555,114 @@ if (sizeSelect) {
       el.removeAttribute("size");
       el.style.fontSize = px;
     });
-  });
-}
+  }
+});
 
-if (colorInput) {
-  colorInput.addEventListener("input", (e) => {
-    if (!editor.isContentEditable) return;
+document.getElementById("color-brat").addEventListener("input", async (e) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    e.preventDefault();
+    return;
+  }
+  if (editor.contentEditable === "true") {
     editor.focus();
     document.execCommand("foreColor", false, e.target.value);
-  });
-}
+  }
+});
 
-// Image upload
-if (imageInput) {
-  imageInput.addEventListener("change", async (e) => {
-    if (!editor.isContentEditable) return;
+// Image upload - protected
+imageInput.addEventListener("change", async (e) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    e.preventDefault();
+    e.target.value = null;
+    alert("⚠️ Login required");
+    return;
+  }
+  
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  try {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
     
-    const file = e.target.files[0];
-    if (!file) return;
+    const { data, error } = await supabase.storage
+      .from('images')
+      .upload(fileName, file);
     
-    console.log('Image selected:', file.name, file.size);
+    if (error) throw error;
     
-    try {
-      // Upload to Supabase Storage
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
-      
-      console.log('Uploading to Supabase Storage...');
-      const { data, error } = await supabase.storage
-        .from('images')
-        .upload(fileName, file);
-      
-      if (error) throw error;
-      
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('images')
-        .getPublicUrl(fileName);
-      
-      console.log('Image uploaded, URL:', publicUrl);
-      
-      // Insert image into editor
-      editor.focus();
-      document.execCommand("insertImage", false, publicUrl);
-      
-      // Auto-save
-      await saveBratContent();
-      
-    } catch (error) {
-      console.error('Image upload error:', error);
-      alert("❌ Image upload failed: " + error.message);
-    } finally {
-      e.target.value = null;
-    }
-  });
-}
+    const { data: { publicUrl } } = supabase.storage
+      .from('images')
+      .getPublicUrl(fileName);
+    
+    editor.focus();
+    document.execCommand("insertImage", false, publicUrl);
+    
+    await saveBratContent();
+    
+  } catch (error) {
+    console.error('Image upload error:', error);
+    alert("❌ Image upload failed: " + error.message);
+  } finally {
+    e.target.value = null;
+  }
+});
 
 // Admin toggle
-if (adminToggle) {
-  adminToggle.addEventListener("click", async () => {
-    console.log('Admin toggle clicked');
-    
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (user) {
-      try { 
-        await supabase.auth.signOut();
-        alert("Signed out");
-        console.log('Signed out');
-      } catch(err) { 
-        console.error('Sign-out error:', err);
-        alert("Sign-out failed: " + err.message); 
-      }
-      return;
+adminToggle.addEventListener("click", async () => {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (user) {
+    try { 
+      await supabase.auth.signOut();
+      alert("Signed out");
+      disableEditing(); // Immediately disable editing
+    } catch(err) { 
+      alert("Sign-out failed: " + err.message); 
     }
-    
-    alert("Please login on the HOME page.");
-    window.location.href = "index.html";
-  });
-}
+    return;
+  }
+  
+  alert("Please login on the HOME page.");
+  window.location.href = "index.html";
+});
 
 // ==========================================================
 // INITIALIZATION
 // ==========================================================
 async function initialize() {
-  console.log('Initializing BRAT page...');
+  // Start in disabled mode by default
+  disableEditing();
   
-  // Test connection
-  const connected = await testSupabase();
-  console.log('Supabase connected:', connected);
-  
-  if (!connected) {
-    alert('⚠️ Cannot connect to database. Check console for details.');
-  }
-  
-  // Setup auth
-  await setupAuth();
+  // Check auth and apply appropriate mode
+  await checkAndApplyAuth();
   
   // Load content
   await loadBratContent();
   
-  console.log('BRAT page initialized successfully');
+  // Animation
+  document.body.classList.add("bokeh-blur");
+  setTimeout(() => {
+    document.body.classList.remove("bokeh-blur");
+  }, 600);
 }
 
-// Start initialization
+// Start
 document.addEventListener('DOMContentLoaded', initialize);
-</script>
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-    document.body.classList.add("bokeh-blur");
-    setTimeout(() => {
-        document.body.classList.remove("bokeh-blur");
-    }, 600);
-});
+
+// Extra protection on page interactions
+document.addEventListener('keydown', function(e) {
+  // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
+  if (
+    e.key === 'F12' ||
+    (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
+    (e.ctrlKey && e.key === 'u')
+  ) {
+    e.preventDefault();
+  }
+}, false);
 </script>
 </body>
 </html>
