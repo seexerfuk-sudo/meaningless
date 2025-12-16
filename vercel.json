@@ -16,21 +16,10 @@
       "source": "/art",
       "destination": "/art.html"
     },
-    {
-      "source": "/unsent",
-      "destination": "/card.html"
-    },
-    {
-      "source": "/card",
-      "destination": "/card.html"
-    },
+
     {
       "source": "/(.*)\\.html",
       "destination": "/$1.html"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
     }
   ],
   "headers": [
