@@ -226,19 +226,24 @@ supabase.auth.onAuthStateChange((event, session) => {
 
 
 
+// GANTI script navigasi yang ada dengan ini:
 document.querySelectorAll(".menu-btn").forEach((btn) => {
   btn.addEventListener("click", (e) => {
-    e.preventDefault(); // Mencegah navigasi default segera
+    e.preventDefault();
     const targetUrl = btn.dataset.target;
     
-    // 1. Tambahkan class slide-left-out ke body
+    // Hapus class jika ada
+    document.body.classList.remove("slide-left-out");
+    
+    // Trigger reflow untuk memastikan animasi berjalan
+    void document.body.offsetWidth;
+    
+    // Tambah class dan navigasi
     document.body.classList.add("slide-left-out");
     
-    // 2. Tunggu hingga animasi selesai (sesuaikan dengan durasi CSS: 0.6s)
     setTimeout(() => {
-      // 3. Pindah ke halaman tujuan
       window.location.href = targetUrl;
-    }, 600); // 600ms = durasi transisi CSS
+    }, 600);
   });
 });
 </script>
